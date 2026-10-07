@@ -19,7 +19,8 @@ export async function POST(request: Request) {
       .bind(body.username, Array.from(salt, b => b.toString(16).padStart(2, "0")).join(""), hash, new Date().toISOString()).run();
     await clearFailedAuth(request);
     return Response.json({ ok: true }, { headers: { "Set-Cookie": await createSessionCookie(body.username) } });
-  } catch {
+  } catch (error) {
+    console.error("[admin-setup] failed", error instanceof Error ? `${error.name}: ${error.message}` : "unknown error");
     return Response.json({ error: "Could not set up the admin login. Please try again." }, { status: 503 });
   }
 }
