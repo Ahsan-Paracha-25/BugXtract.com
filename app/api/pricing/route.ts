@@ -1,7 +1,6 @@
 import { env } from "cloudflare:workers";
 import { defaultPricing } from "../../../lib/pricing-defaults";
-
-const ADMIN_USER_ID = "06db3a2a-3a08-41a3-a289-8ccb9af32a97";
+import { getAdminUsername } from "../../../lib/admin-auth";
 
 function validContent(value: unknown): value is typeof defaultPricing {
   if (!value || typeof value !== "object") return false;
@@ -33,15 +32,15 @@ export async function GET() {
 }
 
 export async function PUT(request: Request) {
-  const userId = request.headers.get("oai-authenticated-user-id");
-  if (!userId || userId !== ADMIN_USER_ID) return Response.json({ error: "Admin access required." }, { status: 403 });
+  const username = await getAdminUsername(request);
+  if (!username) return Response.json({ error: "Please sign in to the admin panel." }, { status: 401 });
   let payload: unknown;
   try { payload = await request.json(); } catch { return Response.json({ error: "Invalid JSON." }, { status: 400 }); }
   if (!validContent(payload)) return Response.json({ error: "Check the plan fields and try again." }, { status: 400 });
   try {
     if (!env.DB) throw new Error("Pricing storage is not configured.");
     await env.DB.prepare("INSERT INTO site_pricing (id, content, updated_at, updated_by) VALUES (1, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET content = excluded.content, updated_at = excluded.updated_at, updated_by = excluded.updated_by")
-      .bind(JSON.stringify(payload), new Date().toISOString(), userId).run();
+      .bind(JSON.stringify(payload), new Date().toISOString(), username).run();
     return Response.json({ ok: true, savedAt: new Date().toISOString() });
   } catch {
     return Response.json({ error: "Could not save yet. Please try again." }, { status: 503 });
