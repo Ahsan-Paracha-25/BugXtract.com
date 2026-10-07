@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">BugXtract.com</title>
+  <desc id="desc">A bug under a magnifying glass inside a shield.</desc>
+  <defs>
+    <linearGradient id="shield" x1="8" y1="6" x2="56" y2="60" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#123c5d"/>
+      <stop offset="1" stop-color="#071e34"/>
+    </linearGradient>
+    <linearGradient id="aqua" x1="16" y1="13" x2="49" y2="47" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#a5fff0"/>
+      <stop offset="1" stop-color="#4ad9ce"/>
+    </linearGradient>
+  </defs>
+  <path d="M32 4 55 16v25L32 60 9 41V16L32 4Z" fill="url(#shield)" stroke="url(#aqua)" stroke-width="2" stroke-linejoin="round"/>
+  <circle cx="28" cy="27" r="15" fill="#0a2944" stroke="url(#aqua)" stroke-width="3"/>
+  <path d="m39 38 13 13" fill="none" stroke="#f4ffff" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="28" cy="19" r="3.2" fill="#f4ffff"/>
+  <path d="M22.5 23.7c1.5-1.2 3.3-1.8 5.5-1.8s4 .6 5.5 1.8v9.4c0 3.5-2.4 6.3-5.5 6.3s-5.5-2.8-5.5-6.3v-9.4Z" fill="url(#aqua)"/>
+  <path d="m22.5 26-5-3m5 8h-6m6 1-4 5m15-11 5-3m-5 9h4" fill="none" stroke="#eaffff" stroke-width="2" stroke-linecap="round"/>
+  <path d="m25.5 16-2.5-3m7.5 3 2.5-3" fill="none" stroke="#eaffff" stroke-width="1.8" stroke-linecap="round"/>
+  <circle cx="28" cy="27" r="1.1" fill="#092540"/>
+  <circle cx="28" cy="32" r="1.1" fill="#092540"/>
+</svg>
