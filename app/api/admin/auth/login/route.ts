@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     const username = validUsername(body.username) ? body.username : "invalid";
     const saltHex = record?.salt ?? "00000000000000000000000000000000";
     const salt = Uint8Array.from(saltHex.match(/.{1,2}/g) ?? [], byte => Number.parseInt(byte, 16));
-    const computed = typeof body.password === "string" && body.password.length <= 128 ? await hashPassword(body.password, salt, record?.iterations ?? 310000) : "";
+    const computed = typeof body.password === "string" && body.password.length <= 128 ? await hashPassword(body.password, salt, record?.iterations ?? 100000) : "";
     if (!record || record.username !== username || computed !== record.passwordHash) {
       await recordFailedAuth(request);
       return Response.json({ error: "Username or password is incorrect." }, { status: 401 });

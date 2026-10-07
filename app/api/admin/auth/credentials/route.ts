@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     if (!validPassword(password)) return Response.json({ error: "New password must contain at least 12 characters." }, { status: 400 });
     const newSalt = crypto.getRandomValues(new Uint8Array(16));
     const newHash = await hashPassword(password, newSalt);
-    await env.DB.prepare("UPDATE admin_credentials SET username = ?, salt = ?, password_hash = ?, iterations = 310000, updated_at = ? WHERE id = 1")
+    await env.DB.prepare("UPDATE admin_credentials SET username = ?, salt = ?, password_hash = ?, iterations = 100000, updated_at = ? WHERE id = 1")
       .bind(nextUsername, Array.from(newSalt, b => b.toString(16).padStart(2, "0")).join(""), newHash, new Date().toISOString()).run();
     await clearFailedAuth(request);
     return Response.json({ ok: true }, { headers: { "Set-Cookie": await createSessionCookie(nextUsername) } });

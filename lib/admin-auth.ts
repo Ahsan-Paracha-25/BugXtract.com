@@ -1,7 +1,7 @@
 import { env } from "cloudflare:workers";
 
 const encoder = new TextEncoder();
-const ITERATIONS = 310_000;
+const ITERATIONS = 100_000;
 const SESSION_SECONDS = 12 * 60 * 60;
 const COOKIE_NAME = "bugxtract_admin";
 

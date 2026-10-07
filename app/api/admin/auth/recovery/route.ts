@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     }
     const salt = crypto.getRandomValues(new Uint8Array(16));
     const hash = await hashPassword(body.password, salt);
-    await env.DB.prepare("UPDATE admin_credentials SET username = ?, salt = ?, password_hash = ?, iterations = 310000, recovery_used = 1, updated_at = ? WHERE id = 1")
+    await env.DB.prepare("UPDATE admin_credentials SET username = ?, salt = ?, password_hash = ?, iterations = 100000, recovery_used = 1, updated_at = ? WHERE id = 1")
       .bind(body.username, Array.from(salt, b => b.toString(16).padStart(2, "0")).join(""), hash, new Date().toISOString()).run();
     await clearFailedAuth(request);
     return Response.json({ ok: true }, { headers: { "Set-Cookie": await createSessionCookie(body.username) } });
