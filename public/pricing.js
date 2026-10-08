@@ -20,8 +20,25 @@
     }
     head.append(header); table.append(head);
     const body = make("tbody");
-    const rows = [["Best suited for", p => p.audience], ["Testing time", p => p.hours], ...featureLabels.map((label, i) => [label, p => p.features?.[i] ?? "—"])];
-    for (const [label, get] of rows) { const row = make("tr"); addCell(row, "th", label, "row"); for (const plan of data.plans) addCell(row, "td", get(plan)); body.append(row); }
+    const rows = [
+      { label: "Best suited for", get: p => p.audience, feature: false },
+      { label: "Testing time", get: p => p.hours, feature: false },
+      ...featureLabels.map((label, i) => ({ label, get: p => p.features?.[i] ?? "—", feature: true })),
+    ];
+    for (const { label, get, feature } of rows) {
+      const row = make("tr", feature ? "pricing-feature-row" : "pricing-summary-row");
+      addCell(row, "th", label, "row");
+      for (const plan of data.plans) {
+        const value = get(plan) || "—";
+        const cell = make("td", feature ? (value === "—" ? "feature-cell not-included" : "feature-cell included") : "");
+        if (feature) {
+          cell.append(make("span", "feature-indicator", value === "—" ? "−" : "✓"));
+          cell.append(make("span", "feature-value", value));
+        } else cell.textContent = value;
+        row.append(cell);
+      }
+      body.append(row);
+    }
     table.append(body);
     const foot = make("tfoot"), actions = make("tr"); addCell(actions, "td", "Find your starting point");
     for (const plan of data.plans) { const td = make("td"), link = make("a", "btn", plan.id === "free" ? "Explore trial" : `Choose ${plan.name}`); link.href = `/contact/?plan=${encodeURIComponent(plan.id)}`; td.append(link); actions.append(td); }
