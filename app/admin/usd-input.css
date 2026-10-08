@@ -7,6 +7,19 @@
   background: #fff;
 }
 
+.usd-range {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.usd-range-to {
+  color: #687789;
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .usd-input:focus-within {
   border-color: #547b2a;
   box-shadow: 0 0 0 2px #547b2a22;

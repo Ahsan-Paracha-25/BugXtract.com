@@ -6,26 +6,53 @@ import { defaultPricing, featureLabels } from "../../lib/pricing-defaults";
 import "./editor.css";
 import "./usd-input.css";
 
-const blankPlan = (n: number): Plan => ({ id: `custom-${Date.now()}-${n}`, name: "New QA plan", price: "", billing: "Per project", audience: "", hours: "", description: "", popular: false, features: featureLabels.map(() => "Included") });
+const blankPlan = (n: number): EditablePlan => ({ id: `custom-${Date.now()}-${n}`, name: "New QA plan", price: "", billing: "Per project", audience: "", hours: "", description: "", popular: false, features: featureLabels.map(() => "Included"), currentMin: "", currentMax: "", originalMin: "", originalMax: "" });
 const blankRetainer = (): Retainer => ({ id: `retainer-${Date.now()}`, name: "New retainer", hours: "", price: "Custom quote", description: "" });
-const priceInputValue = (value: string) => value.replace(/\$/g, "").trim().replace(/\s*[-–—]\s*/g, "–");
-const priceInputStorageValue = (value: string) => {
-  const amount = value.replace(/\$/g, "").trim().replace(/\s*[-–—]\s*/g, "–");
-  return amount ? `$${amount}` : "";
-};
+
+type EditablePlan = Plan & { currentMin: string; currentMax: string; originalMin: string; originalMax: string };
+type EditablePricing = Omit<PricingContent, "plans"> & { plans: EditablePlan[] };
+
+function splitPriceRange(value: string) {
+  const price = value.replace(/\$/g, "").trim();
+  const parts = price.split(/\s*(?:\bto\b|–|—|-)\s*/i);
+  return { min: parts[0] ?? "", max: parts.length > 1 ? parts.slice(1).join("–") : "" };
+}
+
+function formatPriceRange(min: string, max: string) {
+  const first = min.replace(/\$/g, "").trim();
+  const second = max.replace(/\$/g, "").trim();
+  if (first && second) return `$${first}–$${second}`;
+  const single = first || second;
+  return single ? `$${single}` : "";
+}
+
+function toEditablePricing(data: PricingContent): EditablePricing {
+  return { ...data, plans: data.plans.map(plan => {
+    const current = splitPriceRange(plan.price);
+    const original = splitPriceRange(plan.originalPrice ?? "");
+    return { ...plan, currentMin: current.min, currentMax: current.max, originalMin: original.min, originalMax: original.max };
+  }) };
+}
+
+function toStoredPricing(data: EditablePricing): PricingContent {
+  return { ...data, plans: data.plans.map(plan => {
+    const { currentMin, currentMax, originalMin, originalMax, ...stored } = plan;
+    return { ...stored, price: formatPriceRange(currentMin, currentMax), originalPrice: formatPriceRange(originalMin, originalMax) };
+  }) };
+}
 
 export function AdminEditor({ onLogout, username }: { onLogout: () => void; username: string }) {
-  const [content, setContent] = useState<PricingContent>(defaultPricing);
+  const [content, setContent] = useState<EditablePricing>(() => toEditablePricing(defaultPricing));
   const [status, setStatus] = useState("Loading saved plans…");
   const [busy, setBusy] = useState(false);
   const [accountStatus, setAccountStatus] = useState("");
   const [accountBusy, setAccountBusy] = useState(false);
-  useEffect(() => { fetch("/api/pricing", { cache: "no-store" }).then(async r => { if (!r.ok) throw new Error("Pricing data could not be loaded."); return r.json() as Promise<PricingContent>; }).then(data => { setContent(data); setStatus("Your current live prices and plan details are loaded."); }).catch(() => setStatus("Showing the current website defaults. Saving will use the protected online database.")); }, []);
-  function updatePlan(index: number, patch: Partial<Plan>) { setContent(c => ({ ...c, plans: c.plans.map((p, i) => i === index ? { ...p, ...patch } : p) })); }
+  useEffect(() => { fetch("/api/pricing", { cache: "no-store" }).then(async r => { if (!r.ok) throw new Error("Pricing data could not be loaded."); return r.json() as Promise<PricingContent>; }).then(data => { setContent(toEditablePricing(data)); setStatus("Your current live prices and plan details are loaded."); }).catch(() => setStatus("Showing the current website defaults. Saving will use the protected online database.")); }, []);
+  function updatePlan(index: number, patch: Partial<EditablePlan>) { setContent(c => ({ ...c, plans: c.plans.map((p, i) => i === index ? { ...p, ...patch } : p) })); }
   function updateRetainer(index: number, patch: Partial<Retainer>) { setContent(c => ({ ...c, retainers: c.retainers.map((p, i) => i === index ? { ...p, ...patch } : p) })); }
   async function save() {
     setBusy(true); setStatus("Saving changes…");
-    try { const response = await fetch("/api/pricing", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(content) }); const result = await response.json() as { error?: string; savedAt?: string }; if (!response.ok) throw new Error(result.error || "Save failed."); setStatus(`Saved successfully at ${new Date(result.savedAt ?? Date.now()).toLocaleString()}. Public pricing is updated.`); }
+    try { const response = await fetch("/api/pricing", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(toStoredPricing(content)) }); const result = await response.json() as { error?: string; savedAt?: string }; if (!response.ok) throw new Error(result.error || "Save failed."); setStatus(`Saved successfully at ${new Date(result.savedAt ?? Date.now()).toLocaleString()}. Public pricing is updated.`); }
     catch (error) { setStatus(error instanceof Error ? error.message : "Could not save. Please try again."); }
     finally { setBusy(false); }
   }
@@ -44,7 +71,7 @@ export function AdminEditor({ onLogout, username }: { onLogout: () => void; user
     <div className="admin-toolbar"><span aria-live="polite">{status}</span><button className="admin-button" onClick={save} disabled={busy}>{busy ? "Saving…" : "Save and publish changes"}</button></div>
     <section className="editor-section"><div className="editor-title"><div><h2>Project plans</h2><p>Price, hours, audience, description and included coverage.</p></div><button className="admin-secondary" onClick={() => setContent(c => ({ ...c, plans: [...c.plans, blankPlan(c.plans.length)] }))}>+ Add plan</button></div>
       {content.plans.map((plan, i) => <article className="edit-card" key={plan.id}><div className="edit-card-top"><h3>{plan.name || "Untitled plan"}</h3><button className="remove-button" onClick={() => setContent(c => ({ ...c, plans: c.plans.filter((_, index) => index !== i) }))}>Remove plan</button></div>
-        <div className="edit-grid"><label>Plan name<input value={plan.name} onChange={e => updatePlan(i, { name: e.target.value })}/></label><label>Discounted / current price<div className="usd-input"><span aria-hidden="true">$</span><input inputMode="decimal" placeholder="90–150" value={priceInputValue(plan.price)} onChange={e => updatePlan(i, { price: priceInputStorageValue(e.target.value) })}/></div></label><label>Original price (optional)<div className="usd-input"><span aria-hidden="true">$</span><input inputMode="decimal" placeholder="150–300" value={priceInputValue(plan.originalPrice ?? "")} onChange={e => updatePlan(i, { originalPrice: priceInputStorageValue(e.target.value) })}/></div><small>Enter amounts only; leave blank to hide the crossed-out price.</small></label><label>Billing period<input value={plan.billing} onChange={e => updatePlan(i, { billing: e.target.value })}/></label><label>Testing hours<input value={plan.hours} onChange={e => updatePlan(i, { hours: e.target.value })}/></label><label>Best suited for<input value={plan.audience} onChange={e => updatePlan(i, { audience: e.target.value })}/></label><label className="popular-check"><input type="checkbox" checked={plan.popular} onChange={e => updatePlan(i, { popular: e.target.checked })}/> Show “Most Popular” badge</label><label className="wide">Plan description<textarea rows={2} value={plan.description} onChange={e => updatePlan(i, { description: e.target.value })}/></label>
+        <div className="edit-grid"><label>Plan name<input value={plan.name} onChange={e => updatePlan(i, { name: e.target.value })}/></label><label>Discounted / current price<div className="usd-range"><div className="usd-input"><span aria-hidden="true">$</span><input inputMode="decimal" placeholder="90" value={plan.currentMin} onChange={e => updatePlan(i, { currentMin: e.target.value })}/></div><span className="usd-range-to">to</span><div className="usd-input"><span aria-hidden="true">$</span><input inputMode="decimal" placeholder="150" value={plan.currentMax} onChange={e => updatePlan(i, { currentMax: e.target.value })}/></div></div></label><label>Original price (optional)<div className="usd-range"><div className="usd-input"><span aria-hidden="true">$</span><input inputMode="decimal" placeholder="150" value={plan.originalMin} onChange={e => updatePlan(i, { originalMin: e.target.value })}/></div><span className="usd-range-to">to</span><div className="usd-input"><span aria-hidden="true">$</span><input inputMode="decimal" placeholder="300" value={plan.originalMax} onChange={e => updatePlan(i, { originalMax: e.target.value })}/></div></div><small>Enter amounts only; leave both original fields blank to hide the crossed-out price.</small></label><label>Billing period<input value={plan.billing} onChange={e => updatePlan(i, { billing: e.target.value })}/></label><label>Testing hours<input value={plan.hours} onChange={e => updatePlan(i, { hours: e.target.value })}/></label><label>Best suited for<input value={plan.audience} onChange={e => updatePlan(i, { audience: e.target.value })}/></label><label className="popular-check"><input type="checkbox" checked={plan.popular} onChange={e => updatePlan(i, { popular: e.target.checked })}/> Show “Most Popular” badge</label><label className="wide">Plan description<textarea rows={2} value={plan.description} onChange={e => updatePlan(i, { description: e.target.value })}/></label>
           <div className="wide feature-editor"><strong>What's included</strong>{featureLabels.map((feature, fi) => <label key={feature}>{feature}<input value={plan.features[fi] ?? ""} onChange={e => { const features = [...plan.features]; features[fi] = e.target.value; updatePlan(i, { features }); }}/></label>)}</div>
         </div></article>)}
     </section>
