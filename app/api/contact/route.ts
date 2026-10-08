@@ -1,6 +1,6 @@
 import { env } from "cloudflare:workers";
 import { sameOriginRequest } from "../../../lib/admin-auth";
-import { getContactRecipient } from "../../../lib/contact-settings";
+import { getContactSettings } from "../../../lib/contact-settings";
 
 export const dynamic = "force-dynamic";
 
@@ -62,7 +62,15 @@ export async function POST(request: Request) {
   }
 
   try {
-    const recipient = await getContactRecipient();
+    const { recipientEmail: recipient, relayUrl } = await getContactSettings();
+    const usingResend = Boolean(env.RESEND_API_KEY && env.RESEND_FROM_EMAIL);
+    if (!usingResend && !relayUrl) {
+      return Response.json({
+        code: "provider_not_configured",
+        recipientEmail: recipient,
+        error: "The Gmail delivery connection has not been completed yet. Your email app can still send this inquiry manually.",
+      }, { status: 503 });
+    }
     if (!(await withinRateLimit(request))) return Response.json({ error: "Too many inquiries were sent from this connection. Please try again in a few minutes." }, { status: 429 });
     const rows: Array<[string, string]> = [
       ["Name", payload.name.trim()], ["Work email", payload.email.trim()], ["Company", payload.company.trim() || "Not specified"],
@@ -73,7 +81,7 @@ export async function POST(request: Request) {
     ];
     const text = ["BugXtract.com — New Project Inquiry", "", ...rows.flatMap(([label, value]) => [`${label}:`, value, ""])].join("\n");
     const subjectName = payload.name.trim().replace(/[\r\n\t]+/g, " ").slice(0, 80);
-    const response = env.RESEND_API_KEY && env.RESEND_FROM_EMAIL
+    const response = usingResend
       ? await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${env.RESEND_API_KEY}` },
@@ -86,29 +94,26 @@ export async function POST(request: Request) {
           }),
           signal: AbortSignal.timeout(15000),
         })
-      : await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(recipient)}`, {
+      : await fetch(relayUrl!, {
           method: "POST",
           headers: { "Content-Type": "application/json", Accept: "application/json" },
           body: JSON.stringify({
-            ...Object.fromEntries(rows.map(([label, value]) => [label, value])),
-            name: payload.name.trim(),
-            email: payload.email.trim(),
-            _replyto: payload.email.trim(),
-            _subject: `BugXtract.com — New project inquiry from ${subjectName}`,
-            _template: "table",
-            _url: "https://assurax-labs.sqae001.chatgpt.site/contact/",
+            to: recipient,
+            replyTo: payload.email.trim(),
+            subject: `BugXtract.com — New project inquiry from ${subjectName}`,
+            text,
           }),
-          signal: AbortSignal.timeout(20000),
+          signal: AbortSignal.timeout(25000),
         });
     if (!response.ok) {
       const diagnostic = await response.text().catch(() => "");
       console.error("Email provider rejected a project inquiry", response.status, diagnostic.slice(0, 1000));
       return Response.json({ error: "Your inquiry could not be emailed right now. Your details are still here—please try again shortly." }, { status: 502 });
     }
-    if (!env.RESEND_API_KEY || !env.RESEND_FROM_EMAIL) {
-      const result = await response.json().catch(() => null) as { success?: boolean | string; message?: string } | null;
-      if (result?.success === false || result?.success === "false") {
-        console.error("Email form service rejected a project inquiry", result.message || "Unknown response");
+    if (relayUrl && !usingResend) {
+      const result = await response.json().catch(() => null) as { ok?: boolean; message?: string } | null;
+      if (result?.ok !== true) {
+        console.error("Gmail relay did not confirm a project inquiry", result?.message || "Unexpected response");
         return Response.json({ error: "Your inquiry could not be emailed right now. Please try again shortly." }, { status: 502 });
       }
     }

@@ -41,6 +41,7 @@ export const customerReviews = sqliteTable("customer_reviews", {
 export const contactSettings = sqliteTable("contact_settings", {
   id: integer("id").primaryKey(),
   recipientEmail: text("recipient_email").notNull(),
+  relayUrl: text("relay_url"),
   updatedAt: text("updated_at").notNull(),
   updatedBy: text("updated_by").notNull(),
 });
