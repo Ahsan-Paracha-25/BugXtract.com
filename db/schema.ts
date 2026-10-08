@@ -1,4 +1,4 @@
-import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { index, integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const sitePricing = sqliteTable("site_pricing", {
   id: integer("id").primaryKey(),
@@ -31,7 +31,7 @@ export const customerReviews = sqliteTable("customer_reviews", {
   company: text("company").notNull(),
   headline: text("headline").notNull(),
   body: text("body").notNull(),
-  rating: integer("rating").notNull(),
+  rating: real("rating").notNull(),
   imageKey: text("image_key").notNull(),
   published: integer("published").notNull().default(0),
   createdAt: text("created_at").notNull(),

@@ -23,7 +23,7 @@ function validReview(value: unknown): value is ReviewInput {
   const review = value as ReviewInput;
   const optionalText = (input: unknown, max: number) => input === "" || text(input, max);
   const validRating = review.rating === "" || review.rating === null ||
-    (Number.isInteger(review.rating) && Number(review.rating) >= 1 && Number(review.rating) <= 5);
+    (typeof review.rating === "number" && Number.isFinite(review.rating) && review.rating >= 1 && review.rating <= 5 && Number.isInteger(review.rating * 10));
   const validImage = review.imageKey === "" || (typeof review.imageKey === "string" && IMAGE_KEY.test(review.imageKey));
   return (review.id === undefined || (typeof review.id === "string" && /^[0-9a-f-]{36}$/i.test(review.id))) &&
     optionalText(review.customerName, 100) && optionalText(review.role, 100) && optionalText(review.company, 120) &&

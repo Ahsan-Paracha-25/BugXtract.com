@@ -38,10 +38,11 @@
         const top = make("div", "customer-review-top");
         const rating = Math.max(0, Math.min(5, Number(review.rating) || 0));
         if (rating) {
-          const stars = make("span", "customer-review-stars", "★".repeat(rating) + "☆".repeat(5 - rating));
+          const stars = make("span", "customer-review-stars", "★★★★★");
+          stars.style.backgroundImage = `linear-gradient(to right, #d48b1f ${rating / 5 * 100}%, #d8e1e9 ${rating / 5 * 100}%)`;
           stars.setAttribute("aria-label", `${rating} out of 5 stars`);
           stars.setAttribute("role", "img");
-          top.append(stars);
+          top.append(stars, make("span", "customer-review-rating-value", `${rating.toFixed(1)} / 5`));
         }
         top.append(make("span", "customer-review-mark", "“ ”"));
         const quote = make("blockquote", "customer-review-quote");
