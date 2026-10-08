@@ -6,11 +6,12 @@ import serviceCardsCss from "../public/service-cards.css?raw";
 import howItWorksCss from "../public/how-it-works.css?raw";
 import productsDialogCss from "../public/products-dialog.css?raw";
 import pricingDiscountsCss from "../public/pricing-discounts.css?raw";
+import retainersCss from "../public/retainers.css?raw";
 
 export const dynamic = "force-dynamic";
 
 export default function Home() {
-  return <><style dangerouslySetInnerHTML={{ __html: css }} /><style dangerouslySetInnerHTML={{ __html: qualityCss }} /><style dangerouslySetInnerHTML={{ __html: serviceCardsCss }} /><style dangerouslySetInnerHTML={{ __html: howItWorksCss }} /><style dangerouslySetInnerHTML={{ __html: productsDialogCss }} /><style dangerouslySetInnerHTML={{ __html: pricingDiscountsCss }} />
+  return <><style dangerouslySetInnerHTML={{ __html: css }} /><style dangerouslySetInnerHTML={{ __html: qualityCss }} /><style dangerouslySetInnerHTML={{ __html: serviceCardsCss }} /><style dangerouslySetInnerHTML={{ __html: howItWorksCss }} /><style dangerouslySetInnerHTML={{ __html: productsDialogCss }} /><style dangerouslySetInnerHTML={{ __html: pricingDiscountsCss }} /><style dangerouslySetInnerHTML={{ __html: retainersCss }} />
     <div dangerouslySetInnerHTML={{ __html: landingBody }} />
     <Script src="/legacy.js" strategy="afterInteractive" />
     <Script src="/pricing.js" strategy="afterInteractive" />

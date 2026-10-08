@@ -49,7 +49,7 @@
     if (!box || !Array.isArray(data.retainers)) return;
     box.replaceChildren();
     for (const plan of data.retainers) {
-      const row = make("div", "retainer-row"), info = make("div"), name = make("strong", "", plan.name), details = make("span", "", `${plan.hours} hours / month · ${plan.price} / month`), desc = make("span", "", plan.description), link = make("a", "retainer-choice", "Choose this retainer");
+      const row = make("div", "retainer-row"), info = make("div"), name = make("strong", "", plan.name), details = make("span", "", `${plan.hours} hours / month · ${plan.price} / month`), desc = make("span", "", plan.description), link = make("a", "retainer-choice", `Select ${plan.name}`);
       info.append(name, details); link.href = `/contact/?plan=retainer&level=${encodeURIComponent(plan.id)}`; row.append(info, desc, link); box.append(row);
     }
     const note = make("p", "micro", "Prices are in USD per month. Response windows and rollover terms are agreed in your retainer scope. Extra hours require approval. Production checks use an agreed, non-disruptive test plan."); note.style.margin = "20px 0 0"; box.append(note);
