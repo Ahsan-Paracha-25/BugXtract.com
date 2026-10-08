@@ -200,7 +200,7 @@ if (form) {
         return;
       }
       if (!response.ok) throw new Error(result.error || "Your inquiry could not be sent. Please try again.");
-      formStatus.textContent = "Thank you. Your inquiry has been emailed to our QA team.";
+      formStatus.textContent = "Thank you. Your inquiry has been submitted to our team. We’ll follow up using your email address.";
       preview.hidden = true;
       downloadButton.hidden = true;
       form.reset();
