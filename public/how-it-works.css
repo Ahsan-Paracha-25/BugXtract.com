@@ -96,7 +96,7 @@
   display: block;
   margin-bottom: 3px;
   color: var(--step-accent);
-  font: 800 9px/1.25 'DM Sans', sans-serif;
+  font: 800 10px/1.3 'DM Sans', sans-serif;
   letter-spacing: .7px;
   text-transform: uppercase;
 }
@@ -111,7 +111,7 @@
 #services .how-it-works .flow-card p {
   margin: 0;
   color: #61748a;
-  font: 500 11.5px/1.5 'DM Sans', sans-serif;
+  font: 500 12.5px/1.55 'DM Sans', sans-serif;
 }
 
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
