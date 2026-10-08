@@ -20,6 +20,9 @@
   max-width: 620px;
   margin-bottom: 0;
   color: #172b4d;
+  font-size: clamp(40px, 4.2vw, 48px);
+  line-height: 1.08;
+  letter-spacing: -1.7px;
 }
 
 #retainers .section-head p {
@@ -30,7 +33,17 @@
 }
 
 #retainers .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 15px;
+  padding: 7px 13px;
+  border: 1px solid #cbd7fb;
+  border-radius: 999px;
+  background: #eef2ff;
   color: #4f46e5;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 1.35px;
 }
 
 #retainers .retainer-box {
@@ -248,6 +261,11 @@
   #retainers .section-head p {
     margin-top: 14px;
     font-size: 15px;
+  }
+
+  #retainers .section-head h2 {
+    font-size: 36px;
+    letter-spacing: -1.1px;
   }
 
   #retainers .retainer-intro {
