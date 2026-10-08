@@ -1,11 +1,93 @@
 #plans thead .plan-original-price {
   display: block;
-  margin: 10px 0 -5px;
+  margin: 0;
   color: #708196;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   letter-spacing: 0;
   line-height: 1.25;
   text-decoration-thickness: 1.5px;
+  white-space: nowrap;
+}
+
+#plans .table-scroll {
+  overflow: auto;
+  border: 1px solid #d8e4ed;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 16px 42px rgba(13, 44, 69, .08);
+}
+
+#plans table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+#plans thead th {
+  padding: 18px 14px 20px;
+  vertical-align: top;
+}
+
+#plans thead th.popular-plan {
+  background: linear-gradient(180deg, #dcf3f0, #eef9f7) !important;
+}
+
+#plans thead .plan-badge-slot {
+  display: flex;
+  min-height: 30px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+#plans thead .popular-badge {
+  margin: 0;
+  padding: 5px 11px;
+}
+
+#plans thead .plan-name {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  color: #102941;
+  font-family: Manrope, sans-serif;
+  font-size: 15px;
+  font-weight: 750;
+  line-height: 1.25;
+}
+
+#plans thead .plan-original-price-slot {
+  display: flex;
+  min-height: 22px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 3px;
+}
+
+#plans thead strong {
+  margin: 7px 0 7px;
+  color: #17324b;
+  line-height: 1.15;
+}
+
+#plans thead .popular-plan strong {
+  color: #075d59;
+}
+
+#plans tbody th,
+#plans tbody td {
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+
+#plans tfoot td {
+  padding-top: 18px;
+  padding-bottom: 18px;
+  background: #f7fafc;
+}
+
+#plans tfoot .btn {
+  min-width: 128px;
   white-space: nowrap;
 }

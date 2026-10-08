@@ -10,9 +10,12 @@
     const head = make("thead"), header = make("tr"); addCell(header, "th", "Features & inclusions", "col");
     for (const plan of data.plans) {
       const th = make("th", plan.popular ? "popular-plan" : ""); th.scope = "col";
-      if (plan.popular) { const badge = make("span", "popular-badge", "MOST POPULAR"); th.append(badge, document.createElement("br")); }
-      th.append(document.createTextNode(plan.name));
-      if (typeof plan.originalPrice === "string" && plan.originalPrice.trim()) th.append(make("del", "plan-original-price", plan.originalPrice));
+      const badgeSlot = make("span", "plan-badge-slot");
+      if (plan.popular) badgeSlot.append(make("span", "popular-badge", "MOST POPULAR"));
+      th.append(badgeSlot, make("span", "plan-name", plan.name));
+      const originalPriceSlot = make("span", "plan-original-price-slot");
+      if (typeof plan.originalPrice === "string" && plan.originalPrice.trim()) originalPriceSlot.append(make("del", "plan-original-price", plan.originalPrice));
+      th.append(originalPriceSlot);
       th.append(make("strong", "", plan.price)); th.append(make("small", "", plan.billing)); header.append(th);
     }
     head.append(header); table.append(head);
