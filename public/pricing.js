@@ -4,6 +4,11 @@
   const planTableWrapper = document.querySelector("#pricing-table-wrapper");
   const retainerStatus = document.querySelector("#retainer-pricing-status");
   const make = (tag, cls, value) => { const node = document.createElement(tag); if (cls) node.className = cls; if (value !== undefined) node.textContent = value; return node; };
+  const planPrices = plan => {
+    const current = typeof plan.price === "string" ? plan.price.trim() : "";
+    const original = typeof plan.originalPrice === "string" ? plan.originalPrice.trim() : "";
+    return { current, original, discounted: Boolean(current && original && current !== original), display: current || original || "Price to be agreed" };
+  };
   const addCell = (row, tag, value, scope) => { const cell = make(tag, scope ? "" : undefined, value); if (scope) cell.scope = scope; row.append(cell); return cell; };
   function renderPlans(data) {
     const table = document.querySelector("#plans table");
@@ -12,16 +17,17 @@
     const caption = make("caption", "sr-only", "QA plans, prices in US dollars, hours and included services"); table.append(caption);
     const head = make("thead"), header = make("tr"); addCell(header, "th", "Features & inclusions", "col");
     for (const plan of data.plans) {
+      const prices = planPrices(plan);
       const th = make("th", plan.popular ? "popular-plan" : ""); th.scope = "col";
       const badgeSlot = make("span", "plan-badge-slot");
       if (plan.popular) badgeSlot.append(make("span", "popular-badge", "MOST POPULAR"));
       th.append(badgeSlot, make("span", "plan-name", plan.name));
       const originalPriceSlot = make("span", "plan-original-price-slot");
-      const hasDiscount = typeof plan.originalPrice === "string" && plan.originalPrice.trim() && plan.originalPrice !== plan.price;
-      if (hasDiscount) originalPriceSlot.append(make("span", "plan-original-label", "Original"), make("del", "plan-original-price", plan.originalPrice));
+      if (prices.discounted) originalPriceSlot.append(make("span", "plan-original-label", "Original"), make("del", "plan-original-price", prices.original));
       th.append(originalPriceSlot);
-      th.append(make("span", "plan-current-price-label", hasDiscount ? "Discounted price" : "Current price"));
-      th.append(make("strong", "plan-current-price", plan.price)); th.append(make("small", "", plan.billing)); header.append(th);
+      const priceLabel = prices.discounted ? "Discounted price" : !prices.current && prices.original ? "Original price" : "Current price";
+      th.append(make("span", "plan-current-price-label", priceLabel));
+      th.append(make("strong", "plan-current-price", prices.display)); th.append(make("small", "", plan.billing)); header.append(th);
     }
     head.append(header); table.append(head);
     const body = make("tbody");

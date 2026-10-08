@@ -24,6 +24,17 @@ if (form) {
     return item;
   }
 
+  function planPrices(item) {
+    const current = String(item.price || "").trim();
+    const original = String(item.originalPrice || "").trim();
+    return {
+      current,
+      original,
+      discounted: Boolean(current && original && current !== original),
+      display: current || original || "Price to be agreed",
+    };
+  }
+
   function priceText(item) {
     return String(item.price || "Price to be agreed").trim();
   }
@@ -33,10 +44,16 @@ if (form) {
     if (item.kind === "retainer") {
       return item.name + " retainer — monthly price: " + priceText(item) + "; " + item.hours + " hours / month";
     }
-    const hasDiscount = item.originalPrice && item.originalPrice !== item.price;
-    const original = hasDiscount ? " (original price: " + item.originalPrice + ")" : "";
+    const prices = planPrices(item);
+    const priceDescription = prices.discounted
+      ? "discounted price: " + prices.current + " (original price: " + prices.original + ")"
+      : prices.current
+        ? "current price: " + prices.current
+        : prices.original
+          ? "original price: " + prices.original
+          : "price: " + prices.display;
     const coverage = [item.hours, item.billing].filter(Boolean).join(" · ");
-    return item.name + " — " + (hasDiscount ? "discounted price: " : "current price: ") + priceText(item) + original + (coverage ? "; " + coverage : "");
+    return item.name + " — " + priceDescription + (coverage ? "; " + coverage : "");
   }
 
   function messageFor(item) {
@@ -50,11 +67,12 @@ if (form) {
     if (item) {
       priceSummary.hidden = false;
       priceName.textContent = item.kind === "retainer" ? item.name + " retainer" : item.name;
-      priceCurrent.textContent = item.kind === "retainer" ? priceText(item) + " / month" : priceText(item);
-      const hasOriginal = item.kind !== "retainer" && item.originalPrice && item.originalPrice !== item.price;
-      priceLabel.textContent = item.kind === "retainer" ? "Monthly price" : hasOriginal ? "Discounted price" : "Current price";
-      priceOriginal.hidden = !hasOriginal;
-      priceOriginal.textContent = hasOriginal ? item.originalPrice : "";
+      const prices = item.kind === "retainer" ? null : planPrices(item);
+      priceCurrent.textContent = item.kind === "retainer" ? priceText(item) + " / month" : prices.display;
+      const hasDiscount = item.kind !== "retainer" && prices.discounted;
+      priceLabel.textContent = item.kind === "retainer" ? "Monthly price" : hasDiscount ? "Discounted price" : !prices.current && prices.original ? "Original price" : "Current price";
+      priceOriginal.hidden = !hasDiscount;
+      priceOriginal.textContent = hasDiscount ? prices.original : "";
       priceMeta.textContent = item.kind === "retainer"
         ? item.hours + " hours / month"
         : [item.hours, item.billing].filter(Boolean).join(" · ");
@@ -81,8 +99,15 @@ if (form) {
     for (const plan of data.plans) {
       const key = "plan:" + plan.id;
       packages.set(key, Object.assign({ kind: "plan" }, plan));
-      const was = plan.originalPrice && plan.originalPrice !== plan.price ? " · discounted: " + plan.price + " (was " + plan.originalPrice + ")" : " — " + plan.price;
-      planSelect.append(addOption(key, plan.name + was));
+      const prices = planPrices(plan);
+      const priceOption = prices.discounted
+        ? " — discounted: " + prices.current + " (original: " + prices.original + ")"
+        : prices.current
+          ? " — " + prices.current
+          : prices.original
+            ? " — original price: " + prices.original
+            : " — Price to be agreed";
+      planSelect.append(addOption(key, plan.name + priceOption));
     }
     for (const retainer of data.retainers) {
       const key = "retainer:" + retainer.id;
