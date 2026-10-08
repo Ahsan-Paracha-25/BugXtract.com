@@ -1,5 +1,8 @@
 (() => {
   const featureLabels = ["Functional & exploratory", "Smoke & usability checks", "Browser / device coverage", "Regression testing", "API & integration testing", "Roles, permissions & UAT", "Bug reports with evidence", "Fix verification", "Test documentation"];
+  const planStatus = document.querySelector("#pricing-load-status");
+  const planTableWrapper = document.querySelector("#pricing-table-wrapper");
+  const retainerStatus = document.querySelector("#retainer-pricing-status");
   const make = (tag, cls, value) => { const node = document.createElement(tag); if (cls) node.className = cls; if (value !== undefined) node.textContent = value; return node; };
   const addCell = (row, tag, value, scope) => { const cell = make(tag, scope ? "" : undefined, value); if (scope) cell.scope = scope; row.append(cell); return cell; };
   function renderPlans(data) {
@@ -14,9 +17,11 @@
       if (plan.popular) badgeSlot.append(make("span", "popular-badge", "MOST POPULAR"));
       th.append(badgeSlot, make("span", "plan-name", plan.name));
       const originalPriceSlot = make("span", "plan-original-price-slot");
-      if (typeof plan.originalPrice === "string" && plan.originalPrice.trim()) originalPriceSlot.append(make("del", "plan-original-price", plan.originalPrice));
+      const hasDiscount = typeof plan.originalPrice === "string" && plan.originalPrice.trim() && plan.originalPrice !== plan.price;
+      if (hasDiscount) originalPriceSlot.append(make("span", "plan-original-label", "Original"), make("del", "plan-original-price", plan.originalPrice));
       th.append(originalPriceSlot);
-      th.append(make("strong", "", plan.price)); th.append(make("small", "", plan.billing)); header.append(th);
+      th.append(make("span", "plan-current-price-label", hasDiscount ? "Discounted price" : "Current price"));
+      th.append(make("strong", "plan-current-price", plan.price)); th.append(make("small", "", plan.billing)); header.append(th);
     }
     head.append(header); table.append(head);
     const body = make("tbody");
@@ -43,6 +48,9 @@
     const foot = make("tfoot"), actions = make("tr"); addCell(actions, "td", "Find your starting point");
     for (const plan of data.plans) { const td = make("td"), link = make("a", "btn", plan.id === "free" ? "Explore trial" : `Choose ${plan.name}`); link.href = `/contact/?plan=${encodeURIComponent(plan.id)}`; td.append(link); actions.append(td); }
     foot.append(actions); table.append(foot);
+    table.hidden = false;
+    if (planTableWrapper) planTableWrapper.hidden = false;
+    if (planStatus) planStatus.hidden = true;
   }
   function renderRetainers(data) {
     const box = document.querySelector("#retainer-options");
@@ -53,6 +61,11 @@
       info.append(name, details); link.href = `/contact/?plan=retainer&level=${encodeURIComponent(plan.id)}`; row.append(info, desc, link); box.append(row);
     }
     const note = make("p", "micro", "Prices are in USD per month. Response windows and rollover terms are agreed in your retainer scope. Extra hours require approval. Production checks use an agreed, non-disruptive test plan."); note.style.margin = "20px 0 0"; box.append(note);
+    box.hidden = false;
+    if (retainerStatus) retainerStatus.hidden = true;
   }
-  fetch("/api/pricing", { cache: "no-store" }).then(response => { if (!response.ok) throw new Error("Unable to load plans"); return response.json(); }).then(data => { renderPlans(data); renderRetainers(data); }).catch(() => {});
+  fetch("/api/pricing", { cache: "no-store" }).then(response => { if (!response.ok) throw new Error("Unable to load plans"); return response.json(); }).then(data => { renderPlans(data); renderRetainers(data); }).catch(() => {
+    if (planStatus) planStatus.textContent = "Current package prices are unavailable. Please refresh this page.";
+    if (retainerStatus) retainerStatus.textContent = "Current retainer prices are unavailable. Please refresh this page.";
+  });
 })();

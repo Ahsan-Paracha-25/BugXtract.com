@@ -332,3 +332,14 @@
   #plans tbody .pricing-feature-row td { min-width: 138px; }
   #plans tbody .feature-indicator { width: 19px; height: 19px; margin-right: 6px; }
 }
+
+#plans thead .plan-original-price-slot { gap: 5px; }
+#plans thead .plan-original-label { color: #728399; font-size: 10px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; }
+#plans thead .plan-current-price-label { display: block; margin: 3px 0 -4px; color: #365f9e; font-size: 10px; font-weight: 800; letter-spacing: .75px; line-height: 1.3; text-transform: uppercase; }
+#plans thead .popular-plan .plan-current-price-label { color: #1557a5; }
+#plans thead .plan-current-price { color: #17324b; }
+#plans thead .popular-plan .plan-current-price { color: #1557a5; }
+
+.pricing-load-status { margin: 12px 0; padding: 14px 16px; border: 1px solid #d7e3ef; border-radius: 9px; background: #fff; color: #53677e; font-size: 14px; font-weight: 650; }
+#retainers .pricing-load-status { border-color: #cbd7fb; background: rgba(255,255,255,.8); color: #465d82; }
+#retainer-options[hidden] { display: none !important; }

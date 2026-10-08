@@ -6,6 +6,7 @@ if (form) {
   const params = new URLSearchParams(location.search);
   const priceSummary = document.getElementById("selected-package-summary");
   const priceName = document.getElementById("selected-package-name");
+  const priceLabel = document.getElementById("selected-package-price-label");
   const priceOriginal = document.getElementById("selected-package-original");
   const priceCurrent = document.getElementById("selected-package-current");
   const priceMeta = document.getElementById("selected-package-meta");
@@ -30,12 +31,12 @@ if (form) {
   function packageLabel(item) {
     if (!item) return "Help me choose";
     if (item.kind === "retainer") {
-      return item.name + " retainer — current price: " + priceText(item) + " / month; " + item.hours + " hours / month";
+      return item.name + " retainer — monthly price: " + priceText(item) + "; " + item.hours + " hours / month";
     }
-    const original = item.originalPrice && item.originalPrice !== item.price
-      ? "; original price: " + item.originalPrice : "";
+    const hasDiscount = item.originalPrice && item.originalPrice !== item.price;
+    const original = hasDiscount ? " (original price: " + item.originalPrice + ")" : "";
     const coverage = [item.hours, item.billing].filter(Boolean).join(" · ");
-    return item.name + " — current price: " + priceText(item) + original + (coverage ? "; " + coverage : "");
+    return item.name + " — " + (hasDiscount ? "discounted price: " : "current price: ") + priceText(item) + original + (coverage ? "; " + coverage : "");
   }
 
   function messageFor(item) {
@@ -51,6 +52,7 @@ if (form) {
       priceName.textContent = item.kind === "retainer" ? item.name + " retainer" : item.name;
       priceCurrent.textContent = item.kind === "retainer" ? priceText(item) + " / month" : priceText(item);
       const hasOriginal = item.kind !== "retainer" && item.originalPrice && item.originalPrice !== item.price;
+      priceLabel.textContent = item.kind === "retainer" ? "Monthly price" : hasOriginal ? "Discounted price" : "Current price";
       priceOriginal.hidden = !hasOriginal;
       priceOriginal.textContent = hasOriginal ? item.originalPrice : "";
       priceMeta.textContent = item.kind === "retainer"
@@ -79,8 +81,8 @@ if (form) {
     for (const plan of data.plans) {
       const key = "plan:" + plan.id;
       packages.set(key, Object.assign({ kind: "plan" }, plan));
-      const was = plan.originalPrice && plan.originalPrice !== plan.price ? " · was " + plan.originalPrice : "";
-      planSelect.append(addOption(key, plan.name + " — " + plan.price + was));
+      const was = plan.originalPrice && plan.originalPrice !== plan.price ? " · discounted: " + plan.price + " (was " + plan.originalPrice + ")" : " — " + plan.price;
+      planSelect.append(addOption(key, plan.name + was));
     }
     for (const retainer of data.retainers) {
       const key = "retainer:" + retainer.id;

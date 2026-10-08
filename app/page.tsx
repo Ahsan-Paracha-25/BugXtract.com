@@ -14,6 +14,6 @@ export default function Home() {
   return <><style dangerouslySetInnerHTML={{ __html: css }} /><style dangerouslySetInnerHTML={{ __html: qualityCss }} /><style dangerouslySetInnerHTML={{ __html: serviceCardsCss }} /><style dangerouslySetInnerHTML={{ __html: howItWorksCss }} /><style dangerouslySetInnerHTML={{ __html: productsDialogCss }} /><style dangerouslySetInnerHTML={{ __html: pricingDiscountsCss }} /><style dangerouslySetInnerHTML={{ __html: retainersCss }} />
     <div dangerouslySetInnerHTML={{ __html: landingBody }} />
     <Script src="/legacy.js" strategy="afterInteractive" />
-    <Script src="/pricing.js" strategy="afterInteractive" />
+    <Script src="/pricing.js?v=live-pricing-20261008" strategy="afterInteractive" />
   </>;
 }

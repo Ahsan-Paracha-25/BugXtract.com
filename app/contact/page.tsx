@@ -7,6 +7,6 @@ export const dynamic = "force-dynamic";
 export default function Contact() {
   return <><style dangerouslySetInnerHTML={{ __html: css }} />
     <div dangerouslySetInnerHTML={{ __html: contactBody }} />
-    <Script src="/contact.js" strategy="afterInteractive" />
+    <Script src="/contact.js?v=live-pricing-20261008" strategy="afterInteractive" />
   </>;
 }
