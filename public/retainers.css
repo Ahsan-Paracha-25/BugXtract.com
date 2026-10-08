@@ -3,9 +3,9 @@
   overflow: hidden;
   padding: 78px 0 84px;
   background:
-    radial-gradient(ellipse at 8% 0%, rgba(214, 181, 104, .2), transparent 43%),
-    radial-gradient(ellipse at 94% 100%, rgba(53, 124, 76, .32), transparent 38%),
-    linear-gradient(125deg, #102c21 0%, #1b4931 100%);
+    radial-gradient(ellipse at 8% 0%, rgba(212, 139, 76, .2), transparent 43%),
+    radial-gradient(ellipse at 94% 100%, rgba(153, 93, 54, .28), transparent 38%),
+    linear-gradient(125deg, #211f1c 0%, #403329 100%);
 }
 
 #retainers .section-head {
@@ -24,13 +24,13 @@
 
 #retainers .section-head p {
   max-width: 570px;
-  color: #e5eadc;
+  color: #eee5da;
   font-size: 17px;
   line-height: 1.7;
 }
 
 #retainers .eyebrow {
-  color: #e8ca7b;
+  color: #f0bd79;
 }
 
 #retainers .retainer-box {
@@ -47,16 +47,16 @@
   gap: 10px 32px;
   margin-bottom: 20px;
   padding: 22px 26px;
-  border: 1px solid rgba(232, 202, 123, .58);
+  border: 1px solid rgba(198, 128, 75, .55);
   border-radius: 14px;
   background: linear-gradient(120deg, #f5f0df 0%, #fffaf0 100%);
-  box-shadow: 0 12px 28px rgba(7, 22, 14, .14);
+  box-shadow: 0 12px 28px rgba(22, 16, 12, .18);
 }
 
 #retainers .retainer-intro h3 {
   grid-column: 1;
   margin: 0;
-  color: #183c29;
+  color: #36271f;
   font-size: 24px;
   line-height: 1.3;
 }
@@ -65,7 +65,7 @@
   grid-column: 1;
   max-width: 720px;
   margin: 0;
-  color: #566457;
+  color: #62584f;
   font-size: 15px;
   line-height: 1.65;
 }
@@ -76,9 +76,9 @@
   justify-self: end;
   min-height: 48px;
   padding: 12px 19px;
-  border: 1px solid #246842;
+  border: 1px solid #a85232;
   border-radius: 9px;
-  background: #246842;
+  background: #a85232;
   color: #fffdf4;
   font-size: 14px;
   font-weight: 750;
@@ -88,7 +88,7 @@
 
 #retainers .retainer-intro .btn:hover {
   transform: translateY(-2px);
-  background: #174e31;
+  background: #853f29;
   color: #fffdf4;
   box-shadow: 0 11px 24px rgba(4, 16, 30, .24);
 }
@@ -116,7 +116,7 @@
   border: 1px solid #e9e1cd;
   border-radius: 14px;
   background: linear-gradient(150deg, #fffdf7 0%, #f7f5eb 100%);
-  box-shadow: 0 12px 28px rgba(7, 22, 14, .16);
+  box-shadow: 0 12px 28px rgba(35, 23, 15, .18);
   animation: retainer-enter .55s cubic-bezier(.2, .7, .25, 1) backwards;
   transition: transform .24s ease, box-shadow .24s ease, border-color .24s ease;
 }
@@ -131,14 +131,14 @@
   right: 22px;
   height: 3px;
   border-radius: 0 0 4px 4px;
-  background: linear-gradient(90deg, #32794b, #d1ad5b);
+  background: linear-gradient(90deg, #a85232, #dbad69);
   content: "";
 }
 
 #retainers .retainer-row:hover {
   transform: translateY(-5px) scale(1.01);
-  border-color: #c3a958;
-  box-shadow: 0 20px 38px rgba(7, 22, 14, .24);
+  border-color: #c77b45;
+  box-shadow: 0 20px 38px rgba(28, 18, 12, .26);
 }
 
 #retainers .retainer-row > div {
@@ -151,7 +151,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #183c29;
+  color: #36271f;
   font-family: Manrope, sans-serif;
   font-size: 21px;
   line-height: 1.25;
@@ -163,10 +163,10 @@
   height: 34px;
   flex: 0 0 34px;
   place-items: center;
-  border: 1px solid #e0d3a8;
+  border: 1px solid #d8b98f;
   border-radius: 50%;
-  background: #f3ecd5;
-  color: #735d24;
+  background: #f4e7cf;
+  color: #7b4b27;
   content: "0" counter(retainer-plan);
   font-family: "DM Sans", sans-serif;
   font-size: 11px;
@@ -179,15 +179,15 @@
   max-width: 100%;
   padding: 6px 10px;
   border-radius: 7px;
-  background: #eaf2e4;
-  color: #28613d;
+  background: #f6ead6;
+  color: #8e4c28;
   font-size: 14px;
   font-weight: 750;
   line-height: 1.5;
 }
 
 #retainers .retainer-row > span {
-  color: #596557;
+  color: #61564e;
   font-size: 14px;
   line-height: 1.6;
 }
@@ -200,9 +200,9 @@
   justify-content: center;
   margin-top: auto;
   padding: 9px 14px;
-  border: 1px solid #246842;
+  border: 1px solid #a85232;
   border-radius: 8px;
-  background: #246842;
+  background: #a85232;
   color: #fffdf4;
   font-size: 13px;
   font-weight: 750;
@@ -212,15 +212,15 @@
 
 #retainers .retainer-choice:hover {
   transform: translateY(-1px);
-  background: #174e31;
+  background: #853f29;
   color: #fffdf4;
-  box-shadow: 0 7px 16px rgba(36, 104, 66, .24);
+  box-shadow: 0 7px 16px rgba(168, 82, 50, .24);
 }
 
 #retainers .retainer-details > .micro {
   grid-column: 1 / -1;
   margin: 2px 0 0 !important;
-  color: #e5eadc;
+  color: #eee5da;
   font-size: 12px;
   line-height: 1.65;
 }
