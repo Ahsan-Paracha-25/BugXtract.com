@@ -185,6 +185,97 @@
   box-shadow: 0 9px 20px rgba(19, 50, 75, .18);
 }
 
+#plans {
+  background: linear-gradient(180deg, #f2f7fb 0%, #f8fbfd 42%, #f5faf9 100%);
+}
+
+#plans .section-head {
+  align-items: center;
+  gap: clamp(28px, 5vw, 72px);
+  padding: 26px 30px;
+  margin-bottom: 28px;
+  border: 1px solid #dce8ef;
+  border-radius: 18px;
+  background: linear-gradient(112deg, rgba(255,255,255,.96), rgba(241,248,250,.96));
+  box-shadow: 0 10px 28px rgba(18, 48, 78, .045);
+}
+
+#plans .section-head > div:first-child {
+  flex: 1 1 auto;
+}
+
+#plans .section-head .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 0 15px;
+  padding: 7px 11px;
+  border: 1px solid #cfe6e3;
+  border-radius: 999px;
+  background: #eaf6f3;
+  color: #08766f;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.35px;
+  line-height: 1.2;
+}
+
+#plans .section-head h2 {
+  margin: 0 0 11px;
+  color: #102941;
+  font-size: clamp(32px, 3.1vw, 42px);
+  letter-spacing: -1.5px;
+  line-height: 1.12;
+}
+
+#plans .section-head p {
+  max-width: 670px;
+  margin: 0;
+  color: #526b80;
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+#plans .automation-note {
+  position: relative;
+  flex: 0 0 270px;
+  min-width: 245px;
+  padding: 18px 20px 18px 22px;
+  overflow: hidden;
+  border: 1px solid #cde4e7;
+  border-radius: 14px;
+  background: linear-gradient(145deg, #e8f5f7, #e8f4f2);
+  box-shadow: 0 7px 18px rgba(15, 85, 91, .07);
+  color: #173a50;
+  line-height: 1.5;
+}
+
+#plans .automation-note::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: linear-gradient(#07867e, #6abca9);
+  content: "";
+}
+
+#plans .automation-note strong {
+  color: #123a4e;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+#plans .automation-note span {
+  margin-top: 6px;
+  color: #587185;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+#plans .mobile-hint {
+  color: #557083;
+  font-size: 13px;
+  font-weight: 600;
+}
+
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   #plans tbody .pricing-feature-row {
     animation: pricing-row-enter .38s ease both;
@@ -227,6 +318,15 @@
 }
 
 @media (max-width: 700px) {
+  #plans .section-head {
+    display: block;
+    padding: 21px 18px;
+    border-radius: 14px;
+  }
+
+  #plans .section-head h2 { font-size: 32px; }
+  #plans .section-head p { margin-top: 8px; font-size: 15px; }
+  #plans .automation-note { width: 100%; min-width: 0; margin-top: 18px; }
   #plans thead th { padding: 16px 10px 18px; }
   #plans thead .plan-name { font-size: 14px; }
   #plans tbody .pricing-feature-row td { min-width: 138px; }
