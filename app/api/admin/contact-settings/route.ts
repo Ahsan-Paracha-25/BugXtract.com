@@ -13,7 +13,9 @@ export async function GET(request: Request) {
     return Response.json({
       recipientEmail: row?.recipientEmail || DEFAULT_CONTACT_RECIPIENT,
       updatedAt: row?.updatedAt || null,
-      senderConfigured: Boolean(env.RESEND_API_KEY && env.RESEND_FROM_EMAIL),
+      senderConfigured: true,
+      deliveryProvider: env.RESEND_API_KEY && env.RESEND_FROM_EMAIL ? "Resend" : "FormSubmit",
+      activationStepRequired: !(env.RESEND_API_KEY && env.RESEND_FROM_EMAIL),
     }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     console.error("Could not load contact email settings", error);
@@ -35,7 +37,7 @@ export async function PUT(request: Request) {
     const now = new Date().toISOString();
     await env.DB.prepare("INSERT INTO contact_settings (id, recipient_email, updated_at, updated_by) VALUES (1, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET recipient_email = excluded.recipient_email, updated_at = excluded.updated_at, updated_by = excluded.updated_by")
       .bind(email.trim(), now, username || "admin").run();
-    return Response.json({ ok: true, recipientEmail: email.trim(), updatedAt: now, senderConfigured: Boolean(env.RESEND_API_KEY && env.RESEND_FROM_EMAIL) });
+    return Response.json({ ok: true, recipientEmail: email.trim(), updatedAt: now, senderConfigured: true, deliveryProvider: env.RESEND_API_KEY && env.RESEND_FROM_EMAIL ? "Resend" : "FormSubmit", activationStepRequired: !(env.RESEND_API_KEY && env.RESEND_FROM_EMAIL) });
   } catch (error) {
     console.error("Could not save contact email settings", error);
     return Response.json({ error: "The receiving email could not be saved. Please try again." }, { status: 503 });

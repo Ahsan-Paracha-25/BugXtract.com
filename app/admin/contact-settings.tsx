@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 
-type ContactSettings = { recipientEmail: string; senderConfigured: boolean };
+type ContactSettings = { recipientEmail: string; senderConfigured: boolean; deliveryProvider?: string; activationStepRequired?: boolean };
 
 export function ContactSettingsEditor() {
   const [recipientEmail, setRecipientEmail] = useState("sqae001@gmail.com");
@@ -17,7 +17,7 @@ export function ContactSettingsEditor() {
         if (!response.ok) throw new Error(data.error || "Contact settings could not be loaded.");
         setRecipientEmail(data.recipientEmail);
         setSenderConfigured(data.senderConfigured);
-        setStatus(data.senderConfigured ? "Email delivery is configured." : "Receiving address is ready; email provider setup is still required.");
+        setStatus(data.activationStepRequired ? "Automatic delivery is ready. Send one test inquiry and confirm the activation email in this inbox." : "Automatic email delivery is configured.");
       })
       .catch(error => setStatus(error instanceof Error ? error.message : "Contact settings could not be loaded."));
   }, []);
@@ -34,7 +34,7 @@ export function ContactSettingsEditor() {
       const result = await response.json() as ContactSettings & { error?: string };
       if (!response.ok) throw new Error(result.error || "Receiving email could not be saved.");
       setSenderConfigured(result.senderConfigured);
-      setStatus(result.senderConfigured ? "Saved. New inquiries will be sent to this email." : "Saved. Add the email provider setup to activate automatic delivery.");
+      setStatus(result.activationStepRequired ? "Saved. Send one test inquiry and confirm the activation email sent to this inbox." : "Saved. New inquiries will be sent to this email.");
     } catch (error) { setStatus(error instanceof Error ? error.message : "Receiving email could not be saved."); }
     finally { setBusy(false); }
   }
@@ -45,8 +45,11 @@ export function ContactSettingsEditor() {
       <label htmlFor="contact-recipient-email">Receiving email</label>
       <div className="contact-settings-row"><input id="contact-recipient-email" type="email" required maxLength={254} value={recipientEmail} onChange={event => setRecipientEmail(event.target.value)} /><button className="admin-button" disabled={busy}>{busy ? "Saving…" : "Save receiving email"}</button></div>
       <p className="contact-settings-status" role="status">{status}</p>
-      {!senderConfigured && <div className="contact-settings-help"><strong>One-time setup still needed</strong><span>Automatic sending needs a Resend API key and a verified sender email configured as secure Site settings: <code>RESEND_API_KEY</code> and <code>RESEND_FROM_EMAIL</code>. Keep the API key secret; never place it in website code.</span></div>}
-      {senderConfigured && <p className="contact-settings-reply-note">Customer inquiries will be sent here, with the customer’s email set as Reply-To so you can respond directly.</p>}
+      {senderConfigured && <div className={status.includes("activation") ? "contact-settings-help" : "contact-settings-reply-note"}>
+        {status.includes("activation")
+          ? <><strong>One-time Gmail confirmation</strong><span>Submit one test inquiry from the Contact Us page. FormSubmit will send an activation link to this inbox; click it to start receiving submissions. If you change this address later, confirm the new inbox too. The email service may retain submissions for up to 30 days.</span></>
+          : <>Customer inquiries are sent here, with the customer’s email set as Reply-To so you can respond directly.</>}
+      </div>}
     </form></article>
   </section>;
 }
