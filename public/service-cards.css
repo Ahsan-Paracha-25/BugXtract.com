@@ -1,0 +1,137 @@
+#services .testing-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+#services .testing-tile {
+  --tile-accent: #1769e8;
+  --tile-soft: #eaf2ff;
+  --tile-border: #dce8fb;
+  position: relative;
+  min-width: 0;
+  min-height: 166px;
+  padding: 20px 13px 17px;
+  overflow: hidden;
+  border: 1px solid var(--tile-border);
+  border-top: 3px solid var(--tile-accent);
+  border-radius: 13px;
+  background: linear-gradient(150deg, #fff 8%, var(--tile-soft) 145%);
+  box-shadow: 0 5px 16px rgba(12, 48, 86, .055);
+  transition: border-color .22s ease, box-shadow .22s ease, transform .22s ease, background-color .22s ease;
+}
+
+#services .testing-tile::after {
+  position: absolute;
+  top: -40%;
+  left: -65%;
+  width: 42%;
+  height: 180%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .78), transparent);
+  content: "";
+  opacity: 0;
+  pointer-events: none;
+  transform: rotate(18deg);
+}
+
+#services .testing-tile:nth-child(4n + 2) { --tile-accent: #0b9c91; --tile-soft: #e5f7f4; --tile-border: #d0eee9; }
+#services .testing-tile:nth-child(4n + 3) { --tile-accent: #8657d7; --tile-soft: #f1eafe; --tile-border: #e5daf8; }
+#services .testing-tile:nth-child(4n + 4) { --tile-accent: #e18a2d; --tile-soft: #fff3e4; --tile-border: #f4e2c9; }
+#services .testing-tile:nth-child(5n) { --tile-accent: #168c64; --tile-soft: #e7f6ed; --tile-border: #d4ecdd; }
+#services .testing-tile.demand-tile { --tile-accent: #058b83; --tile-soft: #e2f7f3; --tile-border: #c7ebe5; }
+
+#services .testing-tile svg {
+  display: block;
+  width: 46px;
+  height: 46px;
+  margin: 0 0 13px;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--tile-accent) 18%, white);
+  border-radius: 13px;
+  background: var(--tile-soft);
+  color: var(--tile-accent);
+  transition: transform .22s ease, background-color .22s ease, color .22s ease;
+}
+
+#services .testing-tile h3 {
+  max-width: 100%;
+  color: #18324c;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+#services .testing-tile .service-subtitle {
+  margin-top: 6px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--tile-soft);
+  color: color-mix(in srgb, var(--tile-accent) 80%, #17324c);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+#services .testing-tile.demand-tile .service-subtitle {
+  background: #d4f0e9;
+  color: #06766d;
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  #services .testing-tile:hover {
+    transform: translateY(-5px);
+    border-color: color-mix(in srgb, var(--tile-accent) 38%, white);
+    box-shadow: 0 14px 28px color-mix(in srgb, var(--tile-accent) 15%, transparent);
+    animation: service-card-hover .42s cubic-bezier(.2,.75,.25,1) both;
+  }
+
+  #services .testing-tile:hover::after {
+    animation: service-card-sheen .72s ease-out both;
+  }
+
+  #services .testing-tile:hover svg {
+    transform: translateY(-2px) scale(1.05);
+    background: #fff;
+    animation: service-icon-bounce .38s cubic-bezier(.25,.8,.35,1.2) both;
+  }
+}
+
+@keyframes service-card-hover {
+  0% { transform: translateY(0) scale(1); }
+  65% { transform: translateY(-7px) scale(1.025); }
+  100% { transform: translateY(-5px) scale(1.012); }
+}
+
+@keyframes service-card-sheen {
+  0% { left: -65%; opacity: 0; }
+  18% { opacity: .7; }
+  100% { left: 130%; opacity: 0; }
+}
+
+@keyframes service-icon-bounce {
+  0% { transform: translateY(0) scale(1); }
+  60% { transform: translateY(-4px) scale(1.12) rotate(-3deg); }
+  100% { transform: translateY(-2px) scale(1.05); }
+}
+
+@media (max-width: 1050px) {
+  #services .testing-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+}
+
+@media (max-width: 760px) {
+  #services .testing-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; }
+  #services .testing-tile { min-height: 154px; padding: 17px 11px 15px; }
+  #services .testing-tile svg { width: 43px; height: 43px; margin-bottom: 11px; }
+  #services .testing-tile h3 { font-size: 13px; }
+}
+
+@media (max-width: 360px) {
+  #services .testing-grid { grid-template-columns: 1fr; }
+  #services .testing-tile { min-height: 118px; padding: 16px; }
+  #services .testing-tile svg { margin-bottom: 9px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #services .testing-tile, #services .testing-tile svg { transition: none; animation: none !important; }
+  #services .testing-tile::after { display: none; }
+}
