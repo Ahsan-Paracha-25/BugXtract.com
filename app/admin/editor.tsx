@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import type { PricingContent, Plan, Retainer } from "../../lib/pricing-defaults";
 import { defaultPricing, featureLabels } from "../../lib/pricing-defaults";
+import { ReviewsEditor } from "./reviews-editor";
 import "./editor.css";
 import "./usd-input.css";
 
@@ -67,7 +68,7 @@ export function AdminEditor({ onLogout, username }: { onLogout: () => void; user
     } catch (error) { setAccountStatus(error instanceof Error ? error.message : "Could not update login."); }
     finally { setAccountBusy(false); }
   }
-  return <main className="admin-shell"><header className="admin-head"><div><p className="admin-kicker">BugXtract.com · Secure admin</p><h1>Plans & pricing</h1><p>Edit the offers visitors see on your website.</p></div><div className="admin-head-actions"><span>Signed in as <strong>{username}</strong></span><a className="admin-back" href="/">View website</a><button className="admin-secondary" onClick={onLogout}>Sign out</button></div></header>
+  return <main className="admin-shell"><header className="admin-head"><div><p className="admin-kicker">BugXtract.com · Secure admin</p><h1>Website content</h1><p>Manage your offers, monthly retainers, and customer reviews.</p></div><div className="admin-head-actions"><span>Signed in as <strong>{username}</strong></span><a className="admin-back" href="/">View website</a><button className="admin-secondary" onClick={onLogout}>Sign out</button></div></header>
     <div className="admin-toolbar"><span aria-live="polite">{status}</span><button className="admin-button" onClick={save} disabled={busy}>{busy ? "Saving…" : "Save and publish changes"}</button></div>
     <section className="editor-section"><div className="editor-title"><div><h2>Project plans</h2><p>Price, hours, audience, description and included coverage.</p></div><button className="admin-secondary" onClick={() => setContent(c => ({ ...c, plans: [...c.plans, blankPlan(c.plans.length)] }))}>+ Add plan</button></div>
       {content.plans.map((plan, i) => <article className="edit-card" key={plan.id}><div className="edit-card-top"><h3>{plan.name || "Untitled plan"}</h3><button className="remove-button" onClick={() => setContent(c => ({ ...c, plans: c.plans.filter((_, index) => index !== i) }))}>Remove plan</button></div>
@@ -78,6 +79,7 @@ export function AdminEditor({ onLogout, username }: { onLogout: () => void; user
     <section className="editor-section"><div className="editor-title"><div><h2>Monthly retainers</h2><p>Set reserved QA hours, monthly prices and descriptions.</p></div><button className="admin-secondary" onClick={() => setContent(c => ({ ...c, retainers: [...c.retainers, blankRetainer()] }))}>+ Add retainer</button></div>
       {content.retainers.map((r, i) => <article className="edit-card" key={r.id}><div className="edit-card-top"><h3>{r.name || "Untitled retainer"}</h3><button className="remove-button" onClick={() => setContent(c => ({ ...c, retainers: c.retainers.filter((_, index) => index !== i) }))}>Remove retainer</button></div><div className="edit-grid"><label>Retainer name<input value={r.name} onChange={e => updateRetainer(i, { name: e.target.value })}/></label><label>Hours per month<input value={r.hours} onChange={e => updateRetainer(i, { hours: e.target.value })}/></label><label>Monthly price<input value={r.price} onChange={e => updateRetainer(i, { price: e.target.value })}/></label><label className="wide">Description<textarea rows={2} value={r.description} onChange={e => updateRetainer(i, { description: e.target.value })}/></label></div></article>)}
     </section>
+    <ReviewsEditor />
     <section className="editor-section"><div className="editor-title"><div><h2>Admin login</h2><p>Change the username or password for this panel.</p></div></div><article className="edit-card"><form className="edit-grid" onSubmit={updateLogin}><label>New username<input name="username" minLength={3} maxLength={40} placeholder={username}/></label><label>Current password<input name="currentPassword" type="password" autoComplete="current-password" required/></label><label className="wide">New password <small>Leave blank to keep your current password. If changing it, use at least 12 characters.</small><input name="newPassword" type="password" minLength={12} maxLength={128} autoComplete="new-password"/></label><div className="wide account-actions"><button className="admin-button" disabled={accountBusy}>{accountBusy ? "Updating…" : "Update login"}</button><span role="status">{accountStatus}</span></div></form></article></section>
     <footer className="admin-footer"><p>Changes are stored securely and appear on the public pricing page after saving.</p><button className="admin-button" onClick={save} disabled={busy}>{busy ? "Saving…" : "Save pricing"}</button></footer>
   </main>;

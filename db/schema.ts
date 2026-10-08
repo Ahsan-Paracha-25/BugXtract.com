@@ -1,4 +1,4 @@
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const sitePricing = sqliteTable("site_pricing", {
   id: integer("id").primaryKey(),
@@ -23,3 +23,17 @@ export const adminAuthAttempts = sqliteTable("admin_auth_attempts", {
   windowStarted: integer("window_started").notNull(),
   blockedUntil: integer("blocked_until").notNull().default(0),
 });
+
+export const customerReviews = sqliteTable("customer_reviews", {
+  id: text("id").primaryKey(),
+  customerName: text("customer_name").notNull(),
+  role: text("role").notNull(),
+  company: text("company").notNull(),
+  headline: text("headline").notNull(),
+  body: text("body").notNull(),
+  rating: integer("rating").notNull(),
+  imageKey: text("image_key").notNull(),
+  published: integer("published").notNull().default(0),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
+}, (table) => [index("idx_customer_reviews_published_updated").on(table.published, table.updatedAt)]);
