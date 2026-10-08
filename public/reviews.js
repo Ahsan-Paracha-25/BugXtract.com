@@ -11,7 +11,9 @@
   };
 
   function render(reviews) {
-    if (!Array.isArray(reviews) || reviews.length === 0) return;
+    if (!Array.isArray(reviews)) return;
+    reviews = reviews.filter((review) => review && [review.customerName, review.role, review.company, review.headline, review.body, review.imageUrl].some(Boolean) || Number(review?.rating) > 0);
+    if (reviews.length === 0) return;
 
     const section = make("section", "customer-reviews");
     section.id = "customer-reviews";
@@ -34,26 +36,37 @@
       reviews.slice(0, visible).forEach((review) => {
         const card = make("article", "customer-review-card");
         const top = make("div", "customer-review-top");
-        const rating = Math.max(1, Math.min(5, Number(review.rating) || 5));
-        const stars = make("span", "customer-review-stars", "★".repeat(rating) + "☆".repeat(5 - rating));
-        stars.setAttribute("aria-label", `${rating} out of 5 stars`);
-        stars.setAttribute("role", "img");
-        top.append(stars, make("span", "customer-review-mark", "“ ”"));
+        const rating = Math.max(0, Math.min(5, Number(review.rating) || 0));
+        if (rating) {
+          const stars = make("span", "customer-review-stars", "★".repeat(rating) + "☆".repeat(5 - rating));
+          stars.setAttribute("aria-label", `${rating} out of 5 stars`);
+          stars.setAttribute("role", "img");
+          top.append(stars);
+        }
+        top.append(make("span", "customer-review-mark", "“ ”"));
         const quote = make("blockquote", "customer-review-quote");
-        quote.append(make("h3", "", review.headline));
-        quote.append(make("p", "", review.body));
+        if (review.headline) quote.append(make("h3", "", review.headline));
+        if (review.body) quote.append(make("p", "", review.body));
         const person = make("div", "customer-review-person");
-        const image = document.createElement("img");
-        image.src = review.imageUrl;
-        image.alt = `${review.customerName}’s photo`;
-        image.loading = "lazy";
-        image.width = 52;
-        image.height = 52;
-        const details = make("div", "customer-review-person-details");
-        details.append(make("strong", "", review.customerName));
-        details.append(make("span", "", [review.role, review.company].filter(Boolean).join(" · ")));
-        person.append(image, details);
-        card.append(top, quote, person);
+        if (review.imageUrl) {
+          const image = document.createElement("img");
+          image.src = review.imageUrl;
+          image.alt = review.customerName ? `${review.customerName}’s photo` : "Customer thumbnail";
+          image.loading = "lazy";
+          image.width = 52;
+          image.height = 52;
+          person.append(image);
+        }
+        if (review.customerName || review.role || review.company) {
+          const details = make("div", "customer-review-person-details");
+          if (review.customerName) details.append(make("strong", "", review.customerName));
+          const description = [review.role, review.company].filter(Boolean).join(" · ");
+          if (description) details.append(make("span", "", description));
+          person.append(details);
+        }
+        card.append(top);
+        if (review.headline || review.body) card.append(quote);
+        if (person.childElementCount) card.append(person);
         grid.append(card);
       });
       more.hidden = visible >= reviews.length;

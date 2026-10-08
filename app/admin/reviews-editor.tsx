@@ -18,8 +18,8 @@ type Review = {
   updatedAt: string;
 };
 
-type Draft = Omit<Review, "id" | "createdAt" | "updatedAt"> & { id?: string };
-const blankDraft = (): Draft => ({ customerName: "", role: "", company: "", headline: "", body: "", rating: 5, imageKey: "", imageUrl: "", published: true });
+type Draft = Omit<Review, "id" | "createdAt" | "updatedAt" | "rating"> & { id?: string; rating: number | "" };
+const blankDraft = (): Draft => ({ customerName: "", role: "", company: "", headline: "", body: "", rating: "", imageKey: "", imageUrl: "", published: true });
 
 export function ReviewsEditor() {
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -51,7 +51,7 @@ export function ReviewsEditor() {
   }
 
   function edit(review: Review) {
-    setDraft({ ...review });
+    setDraft({ ...review, rating: review.rating || "" });
     setLocalPreview("");
     setError("");
     document.getElementById("review-editor-form")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -138,26 +138,26 @@ export function ReviewsEditor() {
 
   return <section className="editor-section reviews-admin-section">
     <div className="editor-title"><div><h2>Customer reviews</h2><p>Add genuine customer feedback and choose which reviews appear on the website.</p></div><button type="button" className="admin-secondary" onClick={resetDraft}>+ Add review</button></div>
-    <p className="reviews-admin-note">Publish reviews only with the customer’s permission to use their feedback, name, and photo. JPEG, PNG, and WebP thumbnails up to 4 MB are supported.</p>
+    <p className="reviews-admin-note">All review details are optional. Publish feedback only with the customer’s permission to use it. JPEG, PNG, and WebP thumbnails up to 4 MB are supported.</p>
     {error && <p className="reviews-admin-error" role="alert">{error}</p>}
     <form id="review-editor-form" className="edit-card review-form" onSubmit={saveReview}>
       <div className="edit-card-top"><h3>{draft.id ? "Edit customer review" : "Add a customer review"}</h3>{draft.id && <button type="button" className="remove-button" onClick={resetDraft}>Cancel edit</button>}</div>
       <div className="edit-grid">
-        <label>Customer name<input required maxLength={100} value={draft.customerName} onChange={e => setField("customerName", e.target.value)} placeholder="Customer’s name" /></label>
-        <label>Role / title<input required maxLength={100} value={draft.role} onChange={e => setField("role", e.target.value)} placeholder="Product Manager" /></label>
-        <label>Company<input required maxLength={120} value={draft.company} onChange={e => setField("company", e.target.value)} placeholder="Company name" /></label>
-        <label>Rating<select required value={draft.rating} onChange={e => setField("rating", Number(e.target.value))}>{[5, 4, 3, 2, 1].map(value => <option key={value} value={value}>{value} out of 5 stars</option>)}</select></label>
-        <label className="wide">Review headline<input required maxLength={140} value={draft.headline} onChange={e => setField("headline", e.target.value)} placeholder="A clear, concise highlight from the review" /></label>
-        <label className="wide">Customer review<textarea required rows={5} maxLength={2000} value={draft.body} onChange={e => setField("body", e.target.value)} placeholder="Add the customer’s feedback in their own words." /></label>
-        <div className="wide review-image-field"><label htmlFor="review-thumbnail">Customer thumbnail</label><div className="review-image-upload"><div className="review-image-preview">{(localPreview || draft.imageUrl) ? <img src={localPreview || draft.imageUrl} alt="Customer thumbnail preview" /> : <span>Photo<br />preview</span>}</div><div><input id="review-thumbnail" type="file" accept="image/jpeg,image/png,image/webp" required={!draft.imageKey} onChange={uploadImage} /><small>Square headshot works best. The image is kept securely and shown only with a saved review.</small>{uploading && <span className="review-uploading" role="status">Uploading thumbnail…</span>}</div></div></div>
+        <label>Customer name <span>(optional)</span><input maxLength={100} value={draft.customerName} onChange={e => setField("customerName", e.target.value)} placeholder="Customer’s name" /></label>
+        <label>Role / title <span>(optional)</span><input maxLength={100} value={draft.role} onChange={e => setField("role", e.target.value)} placeholder="Product Manager" /></label>
+        <label>Company <span>(optional)</span><input maxLength={120} value={draft.company} onChange={e => setField("company", e.target.value)} placeholder="Company name" /></label>
+        <label>Rating <span>(optional)</span><select value={draft.rating} onChange={e => setField("rating", e.target.value ? Number(e.target.value) : "")}><option value="">No rating</option>{[5, 4, 3, 2, 1].map(value => <option key={value} value={value}>{value} out of 5 stars</option>)}</select></label>
+        <label className="wide">Review headline <span>(optional)</span><input maxLength={140} value={draft.headline} onChange={e => setField("headline", e.target.value)} placeholder="A clear, concise highlight from the review" /></label>
+        <label className="wide">Customer review <span>(optional)</span><textarea rows={5} maxLength={2000} value={draft.body} onChange={e => setField("body", e.target.value)} placeholder="Add the customer’s feedback in their own words." /></label>
+        <div className="wide review-image-field"><label htmlFor="review-thumbnail">Customer thumbnail <span>(optional)</span></label><div className="review-image-upload"><div className="review-image-preview">{(localPreview || draft.imageUrl) ? <img src={localPreview || draft.imageUrl} alt="Customer thumbnail preview" /> : <span>Photo<br />preview</span>}</div><div><input id="review-thumbnail" type="file" accept="image/jpeg,image/png,image/webp" onChange={uploadImage} /><small>Square headshot works best. The image is kept securely and shown only with a saved review.</small>{uploading && <span className="review-uploading" role="status">Uploading thumbnail…</span>}</div></div></div>
         <label className="popular-check review-publish-check"><input type="checkbox" checked={draft.published} onChange={e => setField("published", e.target.checked)} /> Show this review on the website</label>
-        <div className="wide review-form-actions"><button className="admin-button" disabled={busy || uploading || !draft.imageKey}>{busy ? "Saving review…" : draft.id ? "Save review" : "Add review"}</button><span>{draft.published ? "This review will be visible on the public website." : "This review will stay private in your admin panel."}</span></div>
+        <div className="wide review-form-actions"><button className="admin-button" disabled={busy || uploading}>{busy ? "Saving review…" : draft.id ? "Save review" : "Add review"}</button><span>{draft.published ? "Any supplied feedback will be visible on the public website." : "This review will stay private in your admin panel."}</span></div>
       </div>
     </form>
     <div className="reviews-admin-list-head"><h3>Saved reviews</h3><span aria-live="polite">{loading ? "Refreshing…" : status}</span></div>
     {reviews.length === 0 && !loading ? <div className="reviews-admin-empty"><strong>No customer reviews yet</strong><span>Add a review above to start your website’s feedback section.</span></div> : <div className="reviews-admin-list">{reviews.map(review => <article className="reviews-admin-item" key={review.id}>
-      <img src={review.imageUrl} alt="" />
-      <div className="reviews-admin-item-copy"><div className="reviews-admin-meta"><strong>{review.customerName}</strong><span>{review.published ? "Published" : "Private draft"}</span></div><p>{review.role} · {review.company}</p><h4>{review.headline}</h4><p className="reviews-admin-excerpt">{review.body}</p></div>
+      {review.imageUrl ? <img src={review.imageUrl} alt="" /> : <div className="reviews-admin-no-image" aria-hidden="true">—</div>}
+      <div className="reviews-admin-item-copy"><div className="reviews-admin-meta"><strong>{review.customerName || "Customer review"}</strong><span>{review.published ? "Published" : "Private draft"}</span></div>{(review.role || review.company) && <p>{[review.role, review.company].filter(Boolean).join(" · ")}</p>}{review.headline && <h4>{review.headline}</h4>}{review.body && <p className="reviews-admin-excerpt">{review.body}</p>}</div>
       <div className="reviews-admin-actions"><button type="button" className="admin-secondary" onClick={() => edit(review)}>Edit</button><button type="button" className="remove-button" onClick={() => void removeReview(review)}>Remove</button></div>
     </article>)}</div>}
   </section>;
