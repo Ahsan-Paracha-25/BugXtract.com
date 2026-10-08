@@ -11,7 +11,9 @@
     for (const plan of data.plans) {
       const th = make("th", plan.popular ? "popular-plan" : ""); th.scope = "col";
       if (plan.popular) { const badge = make("span", "popular-badge", "MOST POPULAR"); th.append(badge, document.createElement("br")); }
-      th.append(document.createTextNode(plan.name)); th.append(make("strong", "", plan.price)); th.append(make("small", "", plan.billing)); header.append(th);
+      th.append(document.createTextNode(plan.name));
+      if (typeof plan.originalPrice === "string" && plan.originalPrice.trim()) th.append(make("del", "plan-original-price", plan.originalPrice));
+      th.append(make("strong", "", plan.price)); th.append(make("small", "", plan.billing)); header.append(th);
     }
     head.append(header); table.append(head);
     const body = make("tbody");

@@ -2,6 +2,7 @@ export type Plan = {
   id: string;
   name: string;
   price: string;
+  originalPrice?: string;
   billing: string;
   audience: string;
   hours: string;

@@ -1,0 +1,11 @@
+#plans thead .plan-original-price {
+  display: block;
+  margin: 10px 0 -5px;
+  color: #708196;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.25;
+  text-decoration-thickness: 1.5px;
+  white-space: nowrap;
+}

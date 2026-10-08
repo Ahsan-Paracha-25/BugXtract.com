@@ -10,6 +10,7 @@ function validContent(value: unknown): value is typeof defaultPricing {
   const safeText = (v: unknown) => typeof v === "string" && v.length <= 500;
   return content.plans.every((plan: any) =>
     plan && [plan.id, plan.name, plan.price, plan.billing, plan.audience, plan.hours, plan.description].every(safeText) &&
+    (plan.originalPrice === undefined || safeText(plan.originalPrice)) &&
     typeof plan.popular === "boolean" && Array.isArray(plan.features) && plan.features.length <= 20 && plan.features.every(safeText)
   ) && content.retainers.every((retainer: any) =>
     retainer && [retainer.id, retainer.name, retainer.hours, retainer.price, retainer.description].every(safeText)
