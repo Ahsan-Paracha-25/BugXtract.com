@@ -1,0 +1,27 @@
+.usd-input {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  border: 1px solid #cbd3db;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.usd-input:focus-within {
+  border-color: #547b2a;
+  box-shadow: 0 0 0 2px #547b2a22;
+}
+
+.usd-input > span {
+  padding-left: 11px;
+  color: #465365;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.edit-grid .usd-input input:not([type=checkbox]) {
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  box-shadow: none;
+}
