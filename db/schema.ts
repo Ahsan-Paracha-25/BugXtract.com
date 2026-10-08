@@ -37,3 +37,16 @@ export const customerReviews = sqliteTable("customer_reviews", {
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull(),
 }, (table) => [index("idx_customer_reviews_published_updated").on(table.published, table.updatedAt)]);
+
+export const contactSettings = sqliteTable("contact_settings", {
+  id: integer("id").primaryKey(),
+  recipientEmail: text("recipient_email").notNull(),
+  updatedAt: text("updated_at").notNull(),
+  updatedBy: text("updated_by").notNull(),
+});
+
+export const contactSubmissionLimits = sqliteTable("contact_submission_limits", {
+  ipHash: text("ip_hash").primaryKey(),
+  submissions: integer("submissions").notNull(),
+  windowStarted: integer("window_started").notNull(),
+});

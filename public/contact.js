@@ -158,25 +158,60 @@ if (form) {
       formStatus.textContent = "Current package prices could not be loaded. Please refresh the page before selecting a priced package.";
     });
 
-  form.addEventListener("submit", function(event) {
+  form.addEventListener("submit", async function(event) {
     event.preventDefault();
     const data = new FormData(form);
     const selectedPackage = packages.get(planSelect.value);
-    data.set("plan", packageLabel(selectedPackage));
+    const inquiry = {
+      name: String(data.get("name") || "").trim(),
+      email: String(data.get("email") || "").trim(),
+      company: String(data.get("company") || "").trim(),
+      whatsapp: String(data.get("whatsapp") || "").trim(),
+      website: String(data.get("website") || "").trim(),
+      service: String(data.get("service") || "").trim(),
+      plan: packageLabel(selectedPackage),
+      timeline: String(data.get("timeline") || "").trim(),
+      budget: String(data.get("budget") || "").trim(),
+      message: String(data.get("message") || "").trim(),
+      fax_number: String(data.get("fax_number") || "").trim(),
+    };
     prepared = "BugXtract.com — Project Inquiry\n\n" +
-      [["Name", "name"], ["Email", "email"], ["Company", "company"], ["WhatsApp number", "whatsapp"], ["Product URL", "website"], ["Service", "service"], ["Selected package / current price", "plan"], ["Target release", "timeline"], ["Budget", "budget"], ["Project details", "message"]]
-        .map(function(entry) {
-          const value = String(data.get(entry[1]) || "").trim() || "Not specified";
-          return entry[0] + ": " + value;
-        })
+      [["Name", inquiry.name], ["Work email", inquiry.email], ["Company", inquiry.company], ["WhatsApp number", inquiry.whatsapp], ["Product URL", inquiry.website], ["Service", inquiry.service], ["Selected package / current price", inquiry.plan], ["Target release", inquiry.timeline], ["Budget", inquiry.budget], ["Project details", inquiry.message]]
+        .map(function(entry) { return entry[0] + ": " + (entry[1] || "Not specified"); })
         .join("\n");
     preview.textContent = prepared;
     preview.hidden = false;
     downloadButton.hidden = false;
-    formStatus.textContent = "Opening your email app with the inquiry addressed to sqae001@gmail.com. Review it and press Send.";
-    const subject = encodeURIComponent("BugXtract.com — " + (selectedPackage ? selectedPackage.name : "Project inquiry"));
-    const body = encodeURIComponent(prepared);
-    window.location.href = "mailto:sqae001@gmail.com?subject=" + subject + "&body=" + body;
+    const submitButton = form.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    formStatus.textContent = "Sending your inquiry…";
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(inquiry),
+      });
+      const result = await response.json();
+      if (!response.ok && result.code === "provider_not_configured" && result.recipientEmail) {
+        const subject = encodeURIComponent("BugXtract.com — " + (selectedPackage ? selectedPackage.name : "Project inquiry"));
+        const body = encodeURIComponent(prepared);
+        formStatus.textContent = "Automatic email setup is pending. Your email app is opening with the inquiry addressed to " + result.recipientEmail + ". Review it and press Send. If no email app opens, download the inquiry below.";
+        window.location.href = "mailto:" + encodeURIComponent(result.recipientEmail) + "?subject=" + subject + "&body=" + body;
+        return;
+      }
+      if (!response.ok) throw new Error(result.error || "Your inquiry could not be sent. Please try again.");
+      formStatus.textContent = "Thank you. Your inquiry has been emailed to our QA team.";
+      preview.hidden = true;
+      downloadButton.hidden = true;
+      form.reset();
+      priceSummary.hidden = true;
+      generatedMessage = "";
+      prepared = "";
+    } catch (error) {
+      formStatus.textContent = error instanceof Error ? error.message : "Your inquiry could not be sent. Your details are still here—please try again.";
+    } finally {
+      submitButton.disabled = false;
+    }
   });
 
   downloadButton.addEventListener("click", function() {
@@ -187,6 +222,6 @@ if (form) {
     link.download = "bugxtract-project-inquiry.txt";
     link.click();
     setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
-    formStatus.textContent = "Inquiry downloaded. You can attach it to an email to sqae001@gmail.com.";
+    formStatus.textContent = "Inquiry downloaded. Keep it for your records, or retry the online send.";
   });
 }
