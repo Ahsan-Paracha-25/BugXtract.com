@@ -1,4 +1,4 @@
-import { env } from "cloudflare:workers";
+import { env } from "@/lib/runtime-env";
 import { getAdminUsername, isAdminConfigured } from "../../../../../lib/admin-auth";
 
 export async function GET(request: Request) {
@@ -11,3 +11,4 @@ export async function GET(request: Request) {
     return Response.json({ error: "Admin sign-in is temporarily unavailable." }, { status: 503 });
   }
 }
+

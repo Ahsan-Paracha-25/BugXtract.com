@@ -1,4 +1,4 @@
-import { env } from "cloudflare:workers";
+import { env } from "@/lib/runtime-env";
 import { authRateLimited, clearFailedAuth, createSessionCookie, getCredentials, hashPassword, recordFailedAuth, sameOriginRequest, validUsername } from "../../../../../lib/admin-auth";
 
 export async function POST(request: Request) {
@@ -22,3 +22,4 @@ export async function POST(request: Request) {
     return Response.json({ error: "Could not sign in. Please try again." }, { status: 503 });
   }
 }
+

@@ -1,4 +1,4 @@
-import { env } from "cloudflare:workers";
+import { env } from "@/lib/runtime-env";
 import { getAdminUsername, sameOriginRequest } from "../../../../lib/admin-auth";
 
 export const dynamic = "force-dynamic";
@@ -92,3 +92,4 @@ export async function PUT(request: Request) {
     return Response.json({ error: "The review could not be saved. Your form details are still here; please try again." }, { status: 503 });
   }
 }
+

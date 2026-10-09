@@ -1,4 +1,4 @@
-import { env } from "cloudflare:workers";
+import { env } from "@/lib/runtime-env";
 
 export const dynamic = "force-dynamic";
 
@@ -26,3 +26,4 @@ export async function GET(_request: Request, context: { params: Promise<{ key: s
     return new Response("Image storage is temporarily unavailable.", { status: 503 });
   }
 }
+

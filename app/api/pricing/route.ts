@@ -1,4 +1,4 @@
-import { env } from "cloudflare:workers";
+import { env } from "@/lib/runtime-env";
 import { defaultPricing } from "../../../lib/pricing-defaults";
 import { getAdminUsername } from "../../../lib/admin-auth";
 
@@ -47,3 +47,4 @@ export async function PUT(request: Request) {
     return Response.json({ error: "Could not save yet. Please try again." }, { status: 503 });
   }
 }
+

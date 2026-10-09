@@ -3,7 +3,6 @@ import { mkdir, readFile, writeFile, unlink, readdir } from "node:fs/promises";
 import { join, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const { default: app } = await import("./dist/server/index.js");
 const root = fileURLToPath(new URL("./public/assets/", import.meta.url));
 const port = Number(process.env.PORT || 3000);
 let pool;
@@ -79,6 +78,9 @@ function env() {
   };
 }
 
+globalThis.__BUGXTRACT_ENV__ = env();
+const { default: app } = await import("./dist/server/index.js");
+
 function readBody(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
@@ -104,3 +106,6 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(port, "0.0.0.0", () => console.log(`BugXtract Node server listening on port ${port}`));
+
+
+

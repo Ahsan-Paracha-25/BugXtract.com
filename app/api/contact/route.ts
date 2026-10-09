@@ -1,4 +1,4 @@
-import { env } from "cloudflare:workers";
+import { env } from "@/lib/runtime-env";
 import { sameOriginRequest } from "../../../lib/admin-auth";
 import { getContactSettings } from "../../../lib/contact-settings";
 
@@ -123,3 +123,4 @@ export async function POST(request: Request) {
     return Response.json({ error: "Your inquiry could not be emailed right now. Your details are still here—please try again shortly." }, { status: 503 });
   }
 }
+

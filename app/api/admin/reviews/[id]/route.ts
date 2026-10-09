@@ -1,4 +1,4 @@
-import { env } from "cloudflare:workers";
+import { env } from "@/lib/runtime-env";
 import { getAdminUsername, sameOriginRequest } from "../../../../../lib/admin-auth";
 
 export const dynamic = "force-dynamic";
@@ -22,3 +22,4 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
     return Response.json({ error: "The review could not be deleted. Please try again." }, { status: 503 });
   }
 }
+

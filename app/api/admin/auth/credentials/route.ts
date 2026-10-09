@@ -1,4 +1,4 @@
-import { env } from "cloudflare:workers";
+import { env } from "@/lib/runtime-env";
 import { clearFailedAuth, createSessionCookie, getAdminUsername, getCredentials, hashPassword, sameOriginRequest, validPassword, validUsername } from "../../../../../lib/admin-auth";
 
 export async function POST(request: Request) {
@@ -26,3 +26,4 @@ export async function POST(request: Request) {
     return Response.json({ error: "Could not update your login details." }, { status: 503 });
   }
 }
+

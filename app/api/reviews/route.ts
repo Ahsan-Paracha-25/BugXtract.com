@@ -1,4 +1,4 @@
-import { env } from "cloudflare:workers";
+import { env } from "@/lib/runtime-env";
 
 export const dynamic = "force-dynamic";
 
@@ -28,3 +28,4 @@ export async function GET() {
     return Response.json({ error: "Customer reviews are temporarily unavailable." }, { status: 503 });
   }
 }
+

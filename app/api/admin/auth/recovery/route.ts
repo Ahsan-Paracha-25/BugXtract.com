@@ -1,4 +1,4 @@
-import { env } from "cloudflare:workers";
+import { env } from "@/lib/runtime-env";
 import { authRateLimited, clearFailedAuth, constantTimeEqual, createSessionCookie, getCredentials, hashPassword, recordFailedAuth, sameOriginRequest, validPassword, validUsername } from "../../../../../lib/admin-auth";
 
 export async function POST(request: Request) {
@@ -25,3 +25,4 @@ export async function POST(request: Request) {
     return Response.json({ error: "Could not recover the admin login. Please try again." }, { status: 503 });
   }
 }
+

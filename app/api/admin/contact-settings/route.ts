@@ -1,4 +1,4 @@
-import { env } from "cloudflare:workers";
+import { env } from "@/lib/runtime-env";
 import { getAdminUsername, sameOriginRequest } from "../../../../lib/admin-auth";
 import { DEFAULT_CONTACT_RECIPIENT, isValidEmail, isValidGmailRelayUrl } from "../../../../lib/contact-settings";
 
@@ -48,3 +48,4 @@ export async function PUT(request: Request) {
     return Response.json({ error: "The receiving email could not be saved. Please try again." }, { status: 503 });
   }
 }
+

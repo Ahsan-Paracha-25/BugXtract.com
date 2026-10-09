@@ -1,4 +1,4 @@
-import { env } from "cloudflare:workers";
+import { env } from "./runtime-env";
 
 export const DEFAULT_CONTACT_RECIPIENT = "sqae001@gmail.com";
 
@@ -22,3 +22,4 @@ export function isValidGmailRelayUrl(value: unknown): value is string {
       /^\/macros\/s\/[A-Za-z0-9_-]+\/exec\/?$/.test(url.pathname) && !url.search && !url.hash;
   } catch { return false; }
 }
+

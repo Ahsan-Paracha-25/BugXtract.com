@@ -1,4 +1,4 @@
-import { env } from "cloudflare:workers";
+import { env } from "./runtime-env";
 
 const encoder = new TextEncoder();
 const ITERATIONS = 100_000;
@@ -126,3 +126,4 @@ export async function clearFailedAuth(request: Request) {
 }
 
 export async function getCredentials() { return getRecord(); }
+

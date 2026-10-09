@@ -1,4 +1,4 @@
-import { env } from "cloudflare:workers";
+import { env } from "@/lib/runtime-env";
 import { clearFailedAuth, constantTimeEqual, createSessionCookie, getCredentials, hashPassword, recordFailedAuth, sameOriginRequest, validPassword, validUsername, authRateLimited } from "../../../../../lib/admin-auth";
 
 export async function POST(request: Request) {
@@ -24,3 +24,4 @@ export async function POST(request: Request) {
     return Response.json({ error: "Could not set up the admin login. Please try again." }, { status: 503 });
   }
 }
+
