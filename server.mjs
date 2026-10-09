@@ -150,7 +150,9 @@ async function serveClientAsset(pathname, res) {
 const server = http.createServer(async (req, res) => {
   try {
     const body = req.method === "GET" || req.method === "HEAD" ? undefined : await readBody(req);
-    const url = `http://${req.headers.host || "localhost"}${req.url || "/"}`;
+    const forwardedProto = String(req.headers["x-forwarded-proto"] || "http").split(",")[0].trim();
+    const forwardedHost = String(req.headers["x-forwarded-host"] || req.headers.host || "localhost").split(",")[0].trim();
+    const url = `${forwardedProto}://${forwardedHost}${req.url || "/"}`;
     const pathname = new URL(url).pathname;
     if (req.method === "GET" || req.method === "HEAD") {
       if (await serveClientAsset(pathname, res)) return;
