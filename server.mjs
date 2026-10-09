@@ -2,6 +2,7 @@ import http from "node:http";
 import { mkdir, readFile, writeFile, unlink, readdir } from "node:fs/promises";
 import { join, basename } from "node:path";
 import { fileURLToPath } from "node:url";
+import crypto from "node:crypto";
 
 const root = fileURLToPath(new URL("./public/assets/", import.meta.url));
 const port = Number(process.env.PORT || 3000);
@@ -87,6 +88,33 @@ function env() {
   };
 }
 
+function json(res, status, value, headers = {}) {
+  const body = JSON.stringify(value);
+  res.writeHead(status, { "content-type": "application/json; charset=utf-8", ...headers });
+  res.end(body);
+}
+
+function cookieValue(req, name) {
+  const value = String(req.headers.cookie || "").split(";").map(v => v.trim()).find(v => v.startsWith(`${name}=`));
+  return value ? decodeURIComponent(value.slice(name.length + 1)) : "";
+}
+
+function sessionToken(username) {
+  const secret = process.env.ADMIN_SESSION_SECRET || "";
+  const payload = Buffer.from(JSON.stringify({ username, exp: Date.now() + 8 * 60 * 60 * 1000 })).toString("base64url");
+  const signature = crypto.createHmac("sha256", secret).update(payload).digest("base64url");
+  return `${payload}.${signature}`;
+}
+
+function sessionUsername(req) {
+  const token = cookieValue(req, "bugxtract_admin");
+  const [payload, signature] = token.split(".");
+  if (!payload || !signature || !process.env.ADMIN_SESSION_SECRET) return null;
+  const expected = crypto.createHmac("sha256", process.env.ADMIN_SESSION_SECRET).update(payload).digest("base64url");
+  if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) return null;
+  try { const data = JSON.parse(Buffer.from(payload, "base64url").toString()); return data.exp > Date.now() ? data.username : null; } catch { return null; }
+}
+
 globalThis.__BUGXTRACT_ENV__ = env();
 const { default: app } = await import("./dist/server/index.js");
 
@@ -103,6 +131,13 @@ const server = http.createServer(async (req, res) => {
   try {
     const body = req.method === "GET" || req.method === "HEAD" ? undefined : await readBody(req);
     const url = `http://${req.headers.host || "localhost"}${req.url || "/"}`;
+
+    if (new URL(url).pathname === "/api/admin/auth/status" && req.method === "GET") {
+      const row = await database().prepare("SELECT username FROM admin_credentials WHERE id = 1").first();
+      const username = sessionUsername(req);
+      return json(res, 200, { configured: Boolean(row), authenticated: Boolean(username), username });
+    }
+
     const request = new Request(url, { method: req.method, headers: req.headers, body });
     const response = await app.fetch(request, env(), { props: {}, waitUntil() {}, passThroughOnException() {} });
     res.writeHead(response.status, Object.fromEntries(response.headers.entries()));
