@@ -67,8 +67,9 @@ export async function POST(request: Request) {
   try {
     const { recipientEmail: recipient, relayUrl } = await getContactSettings();
     const smtpEnv = typeof process !== "undefined" ? process.env : undefined;
-    const resendApiKey = env.BUGXTRACT_EMAIL_API_KEY || smtpEnv?.BUGXTRACT_EMAIL_API_KEY || smtpEnv?.RESEND_API_KEY;
-    const resendFromEmail = env.RESEND_FROM_EMAIL || smtpEnv?.RESEND_FROM_EMAIL;
+    const bridgedEnv = (globalThis as typeof globalThis & { __BUGXTRACT_ENV__?: Record<string, string | undefined> }).__BUGXTRACT_ENV__;
+    const resendApiKey = env.BUGXTRACT_EMAIL_API_KEY || bridgedEnv?.BUGXTRACT_EMAIL_API_KEY || smtpEnv?.BUGXTRACT_EMAIL_API_KEY || smtpEnv?.RESEND_API_KEY;
+    const resendFromEmail = env.RESEND_FROM_EMAIL || bridgedEnv?.RESEND_FROM_EMAIL || smtpEnv?.RESEND_FROM_EMAIL;
     const usingResend = Boolean(resendApiKey && resendFromEmail);
     const smtpUser = smtpEnv?.SMTP_USER?.trim();
     const smtpPassword = smtpEnv?.SMTP_PASSWORD;
