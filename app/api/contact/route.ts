@@ -31,9 +31,12 @@ async function withinRateLimit(request: Request) {
   const hash = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(ip))))
     .map(value => value.toString(16).padStart(2, "0")).join("");
   const now = Math.floor(Date.now() / 1000);
+  await env.DB.prepare(
+    "INSERT INTO contact_submission_limits (ip_hash, submissions, window_started) VALUES (?, 1, ?) ON DUPLICATE KEY UPDATE submissions = CASE WHEN ? - window_started >= 600 THEN 1 ELSE submissions + 1 END, window_started = CASE WHEN ? - window_started >= 600 THEN ? ELSE window_started END"
+  ).bind(hash, now, now, now, now).run();
   const row = await env.DB.prepare(
-    "INSERT INTO contact_submission_limits (ip_hash, submissions, window_started) VALUES (?, 1, ?) ON CONFLICT(ip_hash) DO UPDATE SET submissions = CASE WHEN ? - window_started >= 600 THEN 1 ELSE submissions + 1 END, window_started = CASE WHEN ? - window_started >= 600 THEN ? ELSE window_started END RETURNING submissions"
-  ).bind(hash, now, now, now, now).first<{ submissions: number }>();
+    "SELECT submissions FROM contact_submission_limits WHERE ip_hash = ?"
+  ).bind(hash).first<{ submissions: number }>();
   return Boolean(row && row.submissions <= 5);
 }
 
