@@ -21,7 +21,6 @@ async function getPool() {
     connectionLimit: 5,
     connectTimeout: 5000,
     enableKeepAlive: true,
-    ssl: { rejectUnauthorized: false },
     charset: "utf8mb4",
   });
   return pool;
