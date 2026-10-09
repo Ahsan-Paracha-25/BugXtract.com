@@ -66,7 +66,7 @@ export async function POST(request: Request) {
 
   try {
     const { recipientEmail: recipient, relayUrl } = await getContactSettings();
-    const usingResend = Boolean(env.RESEND_API_KEY && env.RESEND_FROM_EMAIL);
+    const usingResend = Boolean(env.BUGXTRACT_EMAIL_API_KEY && env.RESEND_FROM_EMAIL);
     const smtpEnv = typeof process !== "undefined" ? process.env : undefined;
     const smtpUser = smtpEnv?.SMTP_USER?.trim();
     const smtpPassword = smtpEnv?.SMTP_PASSWORD;
@@ -108,7 +108,7 @@ export async function POST(request: Request) {
     const response = usingResend
       ? await fetch("https://api.resend.com/emails", {
           method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${env.RESEND_API_KEY}` },
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${env.BUGXTRACT_EMAIL_API_KEY}` },
           body: JSON.stringify({
             from: `BugXtract.com <${env.RESEND_FROM_EMAIL}>`,
             to: [recipient],
