@@ -66,6 +66,30 @@ function database() {
   };
 }
 
+const pricingDetailDefaults = {
+  plans: [
+    { id: "free", audience: "Service evaluation", hours: "2 hours", description: "Try our manual QA approach on one critical user flow.", popular: false, features: ["One critical flow", "Focused checks", "1 configuration", "—", "—", "—", "Short findings report", "—", "Recommendations"] },
+    { id: "starter", audience: "Small apps / websites", hours: "6–12 hours", description: "A practical QA pass for a small product or focused release.", popular: false, features: ["Core workflows", "Included", "2 configurations", "—", "—", "—", "Detailed report", "1 focused cycle", "Test checklist"] },
+    { id: "professional", audience: "Medium applications", hours: "20–40 hours", description: "Broader coverage for growing applications and planned releases.", popular: true, features: ["Agreed feature scope", "Included", "Up to 4 configurations", "Included", "Core APIs", "On agreement", "Detailed report", "2 cycles", "Checklist & release summary"] },
+    { id: "complete", audience: "Large enterprise apps", hours: "60–120 hours", description: "Risk-based testing across larger products and release scopes.", popular: false, features: ["Risk-based module coverage", "Included", "Agreed coverage matrix", "Included", "Agreed APIs & integrations", "Included in agreed scope", "Tracked defect reports", "Within reserved hours", "Test plan, cases & release assessment"] },
+  ],
+  retainers: [
+    { id: "essential", hours: "20", price: "$450", description: "Maintenance checks, small updates, and focused bug verification." },
+    { id: "growth", hours: "40", price: "$850", description: "Regular release cycles, regression coverage, and wider platform checks." },
+    { id: "dedicated", hours: "80", price: "$1,600", description: "Frequent releases, deeper product context, and embedded collaboration." },
+  ],
+};
+
+function enrichPricing(content) {
+  const plans = Array.isArray(content?.plans) ? content.plans : [];
+  const retainers = Array.isArray(content?.retainers) ? content.retainers : [];
+  return {
+    ...content,
+    plans: plans.map(plan => ({ ...pricingDetailDefaults.plans.find(item => item.id === plan.id), ...plan, features: Array.isArray(plan.features) && plan.features.length ? plan.features : pricingDetailDefaults.plans.find(item => item.id === plan.id)?.features || [] })),
+    retainers: retainers.map(plan => ({ ...pricingDetailDefaults.retainers.find(item => item.id === plan.id), ...plan })),
+  };
+}
+
 const bucket = {
   async put(key, value) {
     await mkdir(root, { recursive: true });
@@ -169,7 +193,7 @@ const server = http.createServer(async (req, res) => {
 
     if (pathname === "/api/pricing" && req.method === "GET") {
       const row = await database().prepare("SELECT content FROM site_pricing WHERE id = 1").first();
-      return json(res, 200, row?.content ? JSON.parse(row.content) : { plans: [], retainers: [] }, { "cache-control": "no-store" });
+      return json(res, 200, enrichPricing(row?.content ? JSON.parse(row.content) : { plans: [], retainers: [] }), { "cache-control": "no-store" });
     }
 
     if (pathname === "/api/reviews" && req.method === "GET") {
