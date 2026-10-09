@@ -103,7 +103,13 @@ const bucket = {
       const body = await readFile(join(root, safe));
       const contentType = safe.endsWith(".png") ? "image/png" : safe.endsWith(".webp") ? "image/webp" : "image/jpeg";
       return { body, httpMetadata: { contentType }, writeHttpMetadata(headers) { headers.set("Content-Type", contentType); } };
-    } catch { return null; }
+    } catch {
+      // The original managed-site thumbnails are not part of the GitHub export.
+      // Return a clean initials avatar until the owner uploads the real image.
+      const initials = key.includes("e22fd") ? "DT" : key.includes("2b383") ? "MA" : key.includes("529627") ? "SM" : "QA";
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0b2a45"/><stop offset="1" stop-color="#18b7a0"/></linearGradient></defs><rect width="160" height="160" rx="80" fill="url(#g)"/><text x="80" y="95" text-anchor="middle" font-family="Arial,sans-serif" font-size="52" font-weight="700" fill="white">${initials}</text></svg>`;
+      return { body: Buffer.from(svg), httpMetadata: { contentType: "image/svg+xml" }, writeHttpMetadata(headers) { headers.set("Content-Type", "image/svg+xml"); } };
+    }
   },
   async delete(key) { try { await unlink(join(root, basename(key))); } catch {} },
   async list() { return { objects: (await readdir(root, { withFileTypes: true }).catch(() => [])).filter(x => x.isFile()).map(x => ({ key: x.name })) }; },
