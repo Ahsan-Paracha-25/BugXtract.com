@@ -191,7 +191,15 @@ if (form) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(inquiry),
       });
-      const result = await response.json();
+      const rawResponse = await response.text();
+      let result = {};
+      try {
+        result = rawResponse ? JSON.parse(rawResponse) : {};
+      } catch {
+        throw new Error(response.ok
+          ? "The email service returned an unexpected response. Please try again."
+          : `The contact service is unavailable right now (HTTP ${response.status}). Please try again shortly.`);
+      }
       if (!response.ok && result.code === "provider_not_configured" && result.recipientEmail) {
         const subject = encodeURIComponent("BugXtract.com — " + (selectedPackage ? selectedPackage.name : "Project inquiry"));
         const body = encodeURIComponent(prepared);
