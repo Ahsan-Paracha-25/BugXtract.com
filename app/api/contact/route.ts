@@ -64,11 +64,15 @@ export async function POST(request: Request) {
   try {
     const { recipientEmail: recipient, relayUrl } = await getContactSettings();
     const usingResend = Boolean(env.RESEND_API_KEY && env.RESEND_FROM_EMAIL);
-    if (!usingResend && !relayUrl) {
+    const smtpEnv = typeof process !== "undefined" ? process.env : undefined;
+    const smtpUser = smtpEnv?.SMTP_USER?.trim();
+    const smtpPassword = smtpEnv?.SMTP_PASSWORD;
+    const usingSmtp = Boolean(smtpUser && smtpPassword);
+    if (!usingResend && !relayUrl && !usingSmtp) {
       return Response.json({
         code: "provider_not_configured",
         recipientEmail: recipient,
-        error: "The Gmail delivery connection has not been completed yet. Your email app can still send this inquiry manually.",
+        error: "The GoDaddy email delivery connection has not been completed yet. Please add the SMTP secrets in your hosting settings.",
       }, { status: 503 });
     }
     if (!(await withinRateLimit(request))) return Response.json({ error: "Too many inquiries were sent from this connection. Please try again in a few minutes." }, { status: 429 });
@@ -81,6 +85,23 @@ export async function POST(request: Request) {
     ];
     const text = ["BugXtract.com — New Project Inquiry", "", ...rows.flatMap(([label, value]) => [`${label}:`, value, ""])].join("\n");
     const subjectName = payload.name.trim().replace(/[\r\n\t]+/g, " ").slice(0, 80);
+    if (usingSmtp) {
+      const nodemailer = await import("nodemailer");
+      const transporter = nodemailer.default.createTransport({
+        host: smtpEnv?.SMTP_HOST || "smtpout.secureserver.net",
+        port: Number(smtpEnv?.SMTP_PORT || "465"),
+        secure: (smtpEnv?.SMTP_SECURE || "true").toLowerCase() !== "false",
+        auth: { user: smtpUser, pass: smtpPassword },
+      });
+      await transporter.sendMail({
+        from: `BugXtract.com <${smtpUser}>`,
+        to: recipient,
+        replyTo: payload.email.trim(),
+        subject: `BugXtract.com — New project inquiry from ${subjectName}`,
+        text,
+      });
+      return Response.json({ ok: true });
+    }
     const response = usingResend
       ? await fetch("https://api.resend.com/emails", {
           method: "POST",
