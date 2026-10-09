@@ -98,7 +98,12 @@ const bucket = {
     await writeFile(join(root, safe), data);
   },
   async get(key) {
-    try { return { body: await readFile(join(root, basename(key))) }; } catch { return null; }
+    try {
+      const safe = basename(key);
+      const body = await readFile(join(root, safe));
+      const contentType = safe.endsWith(".png") ? "image/png" : safe.endsWith(".webp") ? "image/webp" : "image/jpeg";
+      return { body, httpMetadata: { contentType }, writeHttpMetadata(headers) { headers.set("Content-Type", contentType); } };
+    } catch { return null; }
   },
   async delete(key) { try { await unlink(join(root, basename(key))); } catch {} },
   async list() { return { objects: (await readdir(root, { withFileTypes: true }).catch(() => [])).filter(x => x.isFile()).map(x => ({ key: x.name })) }; },
