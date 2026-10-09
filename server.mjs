@@ -122,6 +122,8 @@ function env() {
     ADMIN_SETUP_TOKEN: process.env.ADMIN_SETUP_TOKEN,
     ADMIN_SESSION_SECRET: process.env.ADMIN_SESSION_SECRET,
     ADMIN_RECOVERY_TOKEN: process.env.ADMIN_RECOVERY_TOKEN,
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
+    RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL,
   };
 }
 
