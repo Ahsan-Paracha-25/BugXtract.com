@@ -1,10 +1,11 @@
 import http from "node:http";
-import { mkdir, readFile, writeFile, unlink, readdir } from "node:fs/promises";
-import { join, basename } from "node:path";
+import { mkdir, readFile, writeFile, unlink, readdir, stat } from "node:fs/promises";
+import { join, basename, extname, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 import crypto from "node:crypto";
 
 const root = fileURLToPath(new URL("./public/assets/", import.meta.url));
+const clientRoot = fileURLToPath(new URL("./dist/client/", import.meta.url));
 const port = Number(process.env.PORT || 3000);
 let pool;
 
@@ -127,12 +128,31 @@ function readBody(req) {
   });
 }
 
+const contentTypes = { ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".html": "text/html; charset=utf-8", ".json": "application/json", ".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp", ".woff2": "font/woff2" };
+
+async function serveClientAsset(pathname, res) {
+  const relative = decodeURIComponent(pathname).replace(/^\/+/, "");
+  const file = normalize(join(clientRoot, relative));
+  if (!file.startsWith(clientRoot)) return false;
+  try {
+    const info = await stat(file);
+    if (!info.isFile()) return false;
+    res.writeHead(200, { "content-type": contentTypes[extname(file).toLowerCase()] || "application/octet-stream", "cache-control": "public, max-age=31536000, immutable" });
+    res.end(await readFile(file));
+    return true;
+  } catch { return false; }
+}
+
 const server = http.createServer(async (req, res) => {
   try {
     const body = req.method === "GET" || req.method === "HEAD" ? undefined : await readBody(req);
     const url = `http://${req.headers.host || "localhost"}${req.url || "/"}`;
+    const pathname = new URL(url).pathname;
+    if (req.method === "GET" || req.method === "HEAD") {
+      if (await serveClientAsset(pathname, res)) return;
+    }
 
-    if (new URL(url).pathname === "/api/admin/auth/status" && req.method === "GET") {
+    if (pathname === "/api/admin/auth/status" && req.method === "GET") {
       const row = await database().prepare("SELECT username FROM admin_credentials WHERE id = 1").first();
       const username = sessionUsername(req);
       return json(res, 200, { configured: Boolean(row), authenticated: Boolean(username), username });
