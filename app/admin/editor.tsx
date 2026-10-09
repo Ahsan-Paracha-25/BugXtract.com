@@ -32,7 +32,16 @@ function toEditablePricing(data: PricingContent): EditablePricing {
   return { ...data, plans: data.plans.map(plan => {
     const current = splitPriceRange(plan.price);
     const original = splitPriceRange(plan.originalPrice ?? "");
-    return { ...plan, currentMin: current.min, currentMax: current.max, originalMin: original.min, originalMax: original.max };
+    return {
+      ...plan,
+      audience: plan.audience ?? "",
+      description: plan.description ?? "",
+      features: Array.isArray(plan.features) && plan.features.length ? plan.features : featureLabels.map(() => "Included"),
+      currentMin: current.min,
+      currentMax: current.max,
+      originalMin: original.min,
+      originalMax: original.max,
+    };
   }) };
 }
 
