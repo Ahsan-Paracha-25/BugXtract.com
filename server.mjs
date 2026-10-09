@@ -113,8 +113,11 @@ function sessionUsername(req) {
   const [payload, signature] = token.split(".");
   if (!payload || !signature || !process.env.ADMIN_SESSION_SECRET) return null;
   const expected = crypto.createHmac("sha256", process.env.ADMIN_SESSION_SECRET).update(payload).digest("base64url");
-  if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) return null;
-  try { const data = JSON.parse(Buffer.from(payload, "base64url").toString()); return data.exp > Date.now() ? data.username : null; } catch { return null; }
+  if (signature.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) return null;
+  try {
+    const data = JSON.parse(Buffer.from(payload, "base64url").toString());
+    return typeof data.username === "string" && Number(data.expiresAt) > Date.now() ? data.username : null;
+  } catch { return null; }
 }
 
 globalThis.__BUGXTRACT_ENV__ = env();
