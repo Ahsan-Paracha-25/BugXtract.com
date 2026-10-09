@@ -66,8 +66,10 @@ export async function POST(request: Request) {
 
   try {
     const { recipientEmail: recipient, relayUrl } = await getContactSettings();
-    const usingResend = Boolean(env.BUGXTRACT_EMAIL_API_KEY && env.RESEND_FROM_EMAIL);
     const smtpEnv = typeof process !== "undefined" ? process.env : undefined;
+    const resendApiKey = env.BUGXTRACT_EMAIL_API_KEY || smtpEnv?.BUGXTRACT_EMAIL_API_KEY || smtpEnv?.RESEND_API_KEY;
+    const resendFromEmail = env.RESEND_FROM_EMAIL || smtpEnv?.RESEND_FROM_EMAIL;
+    const usingResend = Boolean(resendApiKey && resendFromEmail);
     const smtpUser = smtpEnv?.SMTP_USER?.trim();
     const smtpPassword = smtpEnv?.SMTP_PASSWORD;
     const usingSmtp = Boolean(smtpUser && smtpPassword);
@@ -108,9 +110,9 @@ export async function POST(request: Request) {
     const response = usingResend
       ? await fetch("https://api.resend.com/emails", {
           method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${env.BUGXTRACT_EMAIL_API_KEY}` },
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${resendApiKey}` },
           body: JSON.stringify({
-            from: `BugXtract.com <${env.RESEND_FROM_EMAIL}>`,
+            from: `BugXtract.com <${resendFromEmail}>`,
             to: [recipient],
             reply_to: payload.email.trim(),
             subject: `New project inquiry — ${subjectName}`,
