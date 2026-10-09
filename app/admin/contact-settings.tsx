@@ -5,7 +5,7 @@ import { FormEvent, useEffect, useState } from "react";
 type ContactSettings = { recipientEmail: string; relayUrl: string; senderConfigured: boolean; deliveryProvider?: string };
 
 export function ContactSettingsEditor() {
-  const [recipientEmail, setRecipientEmail] = useState("sqae001@gmail.com");
+  const [recipientEmail, setRecipientEmail] = useState("hello@bugxtract.com");
   const [relayUrl, setRelayUrl] = useState("");
   const [senderConfigured, setSenderConfigured] = useState(false);
   const [busy, setBusy] = useState(false);

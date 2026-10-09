@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS contact_submission_limits (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO contact_settings (id, recipient_email, relay_url, updated_at, updated_by)
-VALUES (1, 'sqae001@gmail.com', NULL, UTC_TIMESTAMP(), 'migration')
+VALUES (1, 'hello@bugxtract.com', NULL, UTC_TIMESTAMP(), 'migration')
 ON DUPLICATE KEY UPDATE recipient_email = VALUES(recipient_email);
 
 INSERT INTO site_pricing (id, content, updated_at, updated_by)

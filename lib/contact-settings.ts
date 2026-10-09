@@ -1,12 +1,9 @@
-import { env } from "./runtime-env";
-
-export const DEFAULT_CONTACT_RECIPIENT = "sqae001@gmail.com";
+export const DEFAULT_CONTACT_RECIPIENT = "hello@bugxtract.com";
 
 export async function getContactSettings() {
-  if (!env.DB) throw new Error("Contact settings database is unavailable.");
-  const row = await env.DB.prepare("SELECT recipient_email AS recipientEmail, relay_url AS relayUrl FROM contact_settings WHERE id = 1")
-    .first<{ recipientEmail: string; relayUrl: string | null }>();
-  return { recipientEmail: row?.recipientEmail || DEFAULT_CONTACT_RECIPIENT, relayUrl: row?.relayUrl || null };
+  // The public contact inbox is fixed to the GoDaddy mailbox. Delivery credentials
+  // are configured separately as server secrets and are never editable in admin.
+  return { recipientEmail: DEFAULT_CONTACT_RECIPIENT, relayUrl: null };
 }
 
 export function isValidEmail(value: unknown): value is string {
