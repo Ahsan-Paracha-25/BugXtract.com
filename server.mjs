@@ -6,6 +6,7 @@ import crypto from "node:crypto";
 
 const root = fileURLToPath(new URL("./public/assets/", import.meta.url));
 const clientRoot = fileURLToPath(new URL("./dist/client/", import.meta.url));
+const serverRoot = fileURLToPath(new URL("./dist/server/", import.meta.url));
 const port = Number(process.env.PORT || 3000);
 let pool;
 
@@ -132,15 +133,18 @@ const contentTypes = { ".js": "text/javascript; charset=utf-8", ".css": "text/cs
 
 async function serveClientAsset(pathname, res) {
   const relative = decodeURIComponent(pathname).replace(/^\/+/, "");
-  const file = normalize(join(clientRoot, relative));
-  if (!file.startsWith(clientRoot)) return false;
-  try {
-    const info = await stat(file);
-    if (!info.isFile()) return false;
-    res.writeHead(200, { "content-type": contentTypes[extname(file).toLowerCase()] || "application/octet-stream", "cache-control": "public, max-age=31536000, immutable" });
-    res.end(await readFile(file));
-    return true;
-  } catch { return false; }
+  for (const base of [clientRoot, serverRoot]) {
+    const file = normalize(join(base, relative));
+    if (!file.startsWith(base)) continue;
+    try {
+      const info = await stat(file);
+      if (!info.isFile()) continue;
+      res.writeHead(200, { "content-type": contentTypes[extname(file).toLowerCase()] || "application/octet-stream", "cache-control": "public, max-age=31536000, immutable" });
+      res.end(await readFile(file));
+      return true;
+    } catch { /* try the other build root */ }
+  }
+  return false;
 }
 
 const server = http.createServer(async (req, res) => {
@@ -160,7 +164,9 @@ const server = http.createServer(async (req, res) => {
 
     const request = new Request(url, { method: req.method, headers: req.headers, body });
     const response = await app.fetch(request, env(), { props: {}, waitUntil() {}, passThroughOnException() {} });
-    res.writeHead(response.status, Object.fromEntries(response.headers.entries()));
+    const responseHeaders = Object.fromEntries(response.headers.entries());
+    if (pathname === "/admin" || pathname === "/admin/") responseHeaders["cache-control"] = "no-store";
+    res.writeHead(response.status, responseHeaders);
     if (req.method !== "HEAD") res.end(Buffer.from(await response.arrayBuffer())); else res.end();
   } catch (error) {
     console.error(error);
