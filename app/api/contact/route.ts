@@ -91,7 +91,7 @@ export async function POST(request: Request) {
     ];
     const text = ["BugXtract.com — New Project Inquiry", "", ...rows.flatMap(([label, value]) => [`${label}:`, value, ""])].join("\n");
     const subjectName = payload.name.trim().replace(/[\r\n\t]+/g, " ").slice(0, 80);
-    if (usingSmtp) {
+    if (!usingResend && usingSmtp) {
       const nodemailer = await import("nodemailer");
       const transporter = nodemailer.default.createTransport({
         host: smtpEnv?.SMTP_HOST || "smtpout.secureserver.net",
