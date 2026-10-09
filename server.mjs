@@ -19,6 +19,9 @@ async function getPool() {
     database: process.env.DB_NAME,
     waitForConnections: true,
     connectionLimit: 5,
+    connectTimeout: 5000,
+    enableKeepAlive: true,
+    ssl: { rejectUnauthorized: false },
     charset: "utf8mb4",
   });
   return pool;
@@ -30,6 +33,13 @@ function mysqlSql(sql) {
     .replace(/excluded\.([a-zA-Z_][a-zA-Z0-9_]*)/g, "VALUES($1)");
 }
 
+function withTimeout(promise, ms = 7000) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error("MySQL query timed out")), ms)),
+  ]);
+}
+
 function database() {
   return {
     prepare(sql) {
@@ -38,15 +48,15 @@ function database() {
         bind(...args) { values = args; return statement; },
         async first() {
           const p = await getPool(); if (!p) return null;
-          const [rows] = await p.execute(mysqlSql(sql), values); return rows[0] ?? null;
+          const [rows] = await withTimeout(p.execute(mysqlSql(sql), values)); return rows[0] ?? null;
         },
         async all() {
           const p = await getPool(); if (!p) return { results: [] };
-          const [rows] = await p.execute(mysqlSql(sql), values); return { results: rows };
+          const [rows] = await withTimeout(p.execute(mysqlSql(sql), values)); return { results: rows };
         },
         async run() {
           const p = await getPool(); if (!p) throw new Error("GoDaddy MySQL database is not configured");
-          const [result] = await p.execute(mysqlSql(sql), values); return { success: true, meta: result };
+          const [result] = await withTimeout(p.execute(mysqlSql(sql), values)); return { success: true, meta: result };
         },
       };
       return statement;
@@ -106,6 +116,8 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(port, "0.0.0.0", () => console.log(`BugXtract Node server listening on port ${port}`));
+
+
 
 
 
