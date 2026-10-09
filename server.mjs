@@ -167,6 +167,22 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, { configured: Boolean(row), authenticated: Boolean(username), username });
     }
 
+    if (pathname === "/api/pricing" && req.method === "GET") {
+      const row = await database().prepare("SELECT content FROM site_pricing WHERE id = 1").first();
+      return json(res, 200, row?.content ? JSON.parse(row.content) : { plans: [], retainers: [] }, { "cache-control": "no-store" });
+    }
+
+    if (pathname === "/api/reviews" && req.method === "GET") {
+      const result = await database().prepare("SELECT id, customer_name AS customerName, role, company, headline, body, rating, image_key AS imageKey, updated_at AS updatedAt FROM customer_reviews WHERE published = 1 ORDER BY updated_at DESC").all();
+      return json(res, 200, result.results.map(row => ({ ...row, imageUrl: row.imageKey ? `/api/reviews/images/${encodeURIComponent(row.imageKey)}` : "" })), { "cache-control": "no-store" });
+    }
+
+    if (pathname === "/api/admin/reviews" && req.method === "GET") {
+      if (!sessionUsername(req)) return json(res, 401, { error: "Admin sign-in required." });
+      const result = await database().prepare("SELECT id, customer_name AS customerName, role, company, headline, body, rating, image_key AS imageKey, published, created_at AS createdAt, updated_at AS updatedAt FROM customer_reviews ORDER BY updated_at DESC").all();
+      return json(res, 200, result.results.map(row => ({ ...row, imageUrl: row.imageKey ? `/api/reviews/images/${encodeURIComponent(row.imageKey)}` : "" })), { "cache-control": "no-store" });
+    }
+
     const request = new Request(url, { method: req.method, headers: req.headers, body });
     const response = await app.fetch(request, env(), { props: {}, waitUntil() {}, passThroughOnException() {} });
     const responseHeaders = Object.fromEntries(response.headers.entries());
