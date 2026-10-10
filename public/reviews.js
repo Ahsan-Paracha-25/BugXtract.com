@@ -1,4 +1,5 @@
 (() => {
+  const coverage = document.querySelector(".coverage");
   const faq = document.querySelector("#faq");
   const main = document.querySelector("main");
   if (!main || document.querySelector("#customer-reviews")) return;
@@ -144,7 +145,8 @@
     });
     wrap.append(header, grid, more);
     section.append(wrap);
-    if (faq) faq.before(section);
+    if (coverage) coverage.before(section);
+    else if (faq) faq.before(section);
     else main.append(section);
     renderCards();
     buildLoop();
