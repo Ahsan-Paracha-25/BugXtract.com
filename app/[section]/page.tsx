@@ -11,7 +11,7 @@ export default async function SectionPage({ params }: { params: Promise<{ sectio
   return <>
     <Home />
     <Script id={`section-jump-${section}`} strategy="afterInteractive">
-      {`requestAnimationFrame(() => document.getElementById(${JSON.stringify(section)})?.scrollIntoView({ behavior: "smooth", block: "start" }));`}
+      {`window.setTimeout(() => { const target = document.getElementById(${JSON.stringify(section)}); if (!target) return; const headerOffset = 92; const top = target.getBoundingClientRect().top + window.scrollY - headerOffset; window.scrollTo({ top: Math.max(0, top), behavior: "smooth" }); }, 120);`}
     </Script>
   </>;
 }
