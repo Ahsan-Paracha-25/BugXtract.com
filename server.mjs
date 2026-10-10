@@ -97,6 +97,15 @@ const bucket = {
     const data = value instanceof ArrayBuffer ? Buffer.from(value) : Buffer.from(value);
     await writeFile(join(root, safe), data);
   },
+  async head(key) {
+    try {
+      const safe = basename(key);
+      const info = await stat(join(root, safe));
+      return { size: info.size };
+    } catch {
+      return null;
+    }
+  },
   async get(key) {
     try {
       const safe = basename(key);
