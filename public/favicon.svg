@@ -1,6 +1,23 @@
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M22 19.2727C22 20.779 20.779 22 19.2727 22H14.7273C13.221 22 12 20.779 12 19.2727V12H19.2727C20.779 12 22 13.221 22 14.7273V19.2727Z" fill="#68C4FF"/>
-<path d="M20 2C21.1046 2 22 2.89543 22 4V7C22 8.10457 21.1046 9 20 9H17C15.8954 9 15 8.10457 15 7V4C15 2.89543 15.8954 2 17 2H20Z" fill="#0C79D8"/>
-<path d="M7 15C8.10457 15 9 15.8954 9 17V20C9 21.1046 8.10457 22 7 22H4C2.89543 22 2 21.1046 2 20V17C2 15.8954 2.89543 15 4 15H7Z" fill="#0C79D8"/>
-<path d="M12 12H4.72727C3.22104 12 2 10.779 2 9.27273V4.72727C2 3.22104 3.22104 2 4.72727 2H9.27273C10.779 2 12 3.22104 12 4.72727V12Z" fill="#2E9EFF"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">BugXtract.com</title>
+  <desc id="desc">A bug under a magnifying glass inside a shield.</desc>
+  <defs>
+    <linearGradient id="shield" x1="8" y1="6" x2="56" y2="60" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#123c5d"/>
+      <stop offset="1" stop-color="#071e34"/>
+    </linearGradient>
+    <linearGradient id="aqua" x1="16" y1="13" x2="49" y2="47" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#a5fff0"/>
+      <stop offset="1" stop-color="#4ad9ce"/>
+    </linearGradient>
+  </defs>
+  <path d="M32 4 55 16v25L32 60 9 41V16L32 4Z" fill="url(#shield)" stroke="url(#aqua)" stroke-width="2" stroke-linejoin="round"/>
+  <circle cx="28" cy="27" r="15" fill="#0a2944" stroke="url(#aqua)" stroke-width="3"/>
+  <path d="m39 38 13 13" fill="none" stroke="#f4ffff" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="28" cy="19" r="3.2" fill="#f4ffff"/>
+  <path d="M22.5 23.7c1.5-1.2 3.3-1.8 5.5-1.8s4 .6 5.5 1.8v9.4c0 3.5-2.4 6.3-5.5 6.3s-5.5-2.8-5.5-6.3v-9.4Z" fill="url(#aqua)"/>
+  <path d="m22.5 26-5-3m5 8h-6m6 1-4 5m15-11 5-3m-5 9h4" fill="none" stroke="#eaffff" stroke-width="2" stroke-linecap="round"/>
+  <path d="m25.5 16-2.5-3m7.5 3 2.5-3" fill="none" stroke="#eaffff" stroke-width="1.8" stroke-linecap="round"/>
+  <circle cx="28" cy="27" r="1.1" fill="#092540"/>
+  <circle cx="28" cy="32" r="1.1" fill="#092540"/>
 </svg>
