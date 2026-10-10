@@ -276,26 +276,26 @@
   font-weight: 600;
 }
 
-@media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  #plans tbody .pricing-feature-row {
+@media (prefers-reduced-motion: no-preference) {
+  #plans.is-in-view tbody .pricing-feature-row {
     animation: pricing-row-enter .38s ease both;
   }
 
-  #plans tbody .pricing-feature-row:nth-child(3) { animation-delay: .03s; }
-  #plans tbody .pricing-feature-row:nth-child(4) { animation-delay: .06s; }
-  #plans tbody .pricing-feature-row:nth-child(5) { animation-delay: .09s; }
-  #plans tbody .pricing-feature-row:nth-child(6) { animation-delay: .12s; }
-  #plans tbody .pricing-feature-row:nth-child(7) { animation-delay: .15s; }
-  #plans tbody .pricing-feature-row:nth-child(8) { animation-delay: .18s; }
-  #plans tbody .pricing-feature-row:nth-child(9) { animation-delay: .21s; }
-  #plans tbody .pricing-feature-row:nth-child(10) { animation-delay: .24s; }
-  #plans tbody .pricing-feature-row:nth-child(11) { animation-delay: .27s; }
+  #plans.is-in-view tbody .pricing-feature-row:nth-child(3) { animation-delay: .03s; }
+  #plans.is-in-view tbody .pricing-feature-row:nth-child(4) { animation-delay: .06s; }
+  #plans.is-in-view tbody .pricing-feature-row:nth-child(5) { animation-delay: .09s; }
+  #plans.is-in-view tbody .pricing-feature-row:nth-child(6) { animation-delay: .12s; }
+  #plans.is-in-view tbody .pricing-feature-row:nth-child(7) { animation-delay: .15s; }
+  #plans.is-in-view tbody .pricing-feature-row:nth-child(8) { animation-delay: .18s; }
+  #plans.is-in-view tbody .pricing-feature-row:nth-child(9) { animation-delay: .21s; }
+  #plans.is-in-view tbody .pricing-feature-row:nth-child(10) { animation-delay: .24s; }
+  #plans.is-in-view tbody .pricing-feature-row:nth-child(11) { animation-delay: .27s; }
 
-  #plans thead .popular-badge {
+  #plans.is-in-view thead .popular-badge {
     animation: popular-badge-arrive .45s cubic-bezier(.2,.8,.2,1.2) both;
   }
 
-  #plans thead .popular-badge:hover {
+  #plans.is-in-view thead .popular-badge:hover {
     box-shadow: 0 7px 18px rgba(7, 127, 121, .32);
   }
 }

@@ -17,7 +17,8 @@ export default function Home() {
     <div dangerouslySetInnerHTML={{ __html: landingBody }} />
     <Script src="/legacy.js" strategy="afterInteractive" />
     <Script src="/pricing.js?v=live-pricing-20261008" strategy="afterInteractive" />
-    <Script src="/reviews.js?v=customer-reviews-20261008" strategy="afterInteractive" />
-    <Script src="/trust-metrics.js?v=trust-metrics-20261011" strategy="afterInteractive" />
+    <Script src="/reviews.js?v=viewport-20261011" strategy="afterInteractive" />
+    <Script src="/trust-metrics.js?v=viewport-20261011" strategy="afterInteractive" />
+    <Script src="/scroll-animations.js?v=20261011" strategy="afterInteractive" />
   </>;
 }

@@ -33,6 +33,8 @@
     let visible = 6;
     let autoScrollTimer = 0;
     let scrollDirection = 1;
+    let sectionVisible = false;
+    let pointerInside = false;
     const renderCards = () => {
       grid.replaceChildren();
       reviews.slice(0, visible).forEach((review) => {
@@ -81,7 +83,8 @@
     };
     const startAutoScroll = () => {
       stopAutoScroll();
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      if (!sectionVisible || pointerInside || grid.contains(document.activeElement) || document.hidden ||
+          window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
       autoScrollTimer = window.setInterval(() => {
         const maxScroll = grid.scrollWidth - grid.clientWidth;
         if (maxScroll <= 4) return;
@@ -98,18 +101,34 @@
       renderCards();
       startAutoScroll();
     });
-    grid.addEventListener("mouseenter", stopAutoScroll);
-    grid.addEventListener("mouseleave", startAutoScroll);
+    grid.addEventListener("mouseenter", () => { pointerInside = true; stopAutoScroll(); });
+    grid.addEventListener("mouseleave", () => { pointerInside = false; startAutoScroll(); });
     grid.addEventListener("focusin", stopAutoScroll);
     grid.addEventListener("focusout", (event) => {
       if (!grid.contains(event.relatedTarget)) startAutoScroll();
     });
     wrap.append(header, grid, more);
     section.append(wrap);
-    if (faq && faq.parentNode === main) main.insertBefore(section, faq);
+    if (faq) faq.before(section);
     else main.append(section);
     renderCards();
-    startAutoScroll();
+    if ("IntersectionObserver" in window) {
+      const observer = new IntersectionObserver(entries => {
+        sectionVisible = entries[0].isIntersecting;
+        section.classList.toggle("is-in-view", sectionVisible);
+        if (sectionVisible) startAutoScroll();
+        else stopAutoScroll();
+      }, { threshold: 0.12 });
+      observer.observe(section);
+    } else {
+      sectionVisible = true;
+      section.classList.add("is-in-view");
+      startAutoScroll();
+    }
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) stopAutoScroll();
+      else startAutoScroll();
+    });
   }
 
   fetch("/api/reviews", { cache: "no-store" })

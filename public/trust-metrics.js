@@ -23,7 +23,8 @@
   };
 
   let observer;
-  let animated = false;
+  let inView = false;
+  let countGeneration = 0;
   function animateCount(node, value) {
     const match = /^(\d+(?:\.\d+)?)(.*)$/.exec(value);
     if (!match || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -33,22 +34,28 @@
     const suffix = match[2];
     const start = performance.now();
     const duration = 1200;
+    const generation = countGeneration;
     function tick(now) {
+      if (generation !== countGeneration || !node.isConnected) return;
       const progress = Math.min((now - start) / duration, 1);
       const eased = 1 - (1 - progress) ** 3;
       node.textContent = `${(target * eased).toFixed(decimals)}${suffix}`;
-      if (progress < 1 && node.isConnected) requestAnimationFrame(tick);
+      if (progress < 1) requestAnimationFrame(tick);
       else node.textContent = value;
     }
     requestAnimationFrame(tick);
   }
 
-  function reveal() {
-    if (animated) return;
-    animated = true;
-    section.classList.add("is-in-view");
-    grid.querySelectorAll(".trust-metric-value").forEach(node => animateCount(node, node.dataset.value || node.textContent));
-    observer?.disconnect();
+  function setInView(visible) {
+    if (visible === inView) return;
+    inView = visible;
+    countGeneration++;
+    section.classList.toggle("is-in-view", visible);
+    grid.querySelectorAll(".trust-metric-value").forEach(node => {
+      const value = node.dataset.value || node.textContent;
+      node.textContent = value;
+      if (visible) animateCount(node, value);
+    });
   }
 
   function render(metrics) {
@@ -80,16 +87,15 @@
       card.append(icon, copy);
       grid.append(card);
     });
-    if (animated) {
-      section.classList.add("is-in-view");
+    if (inView) {
       grid.querySelectorAll(".trust-metric-value").forEach(node => animateCount(node, node.dataset.value || node.textContent));
     } else if ("IntersectionObserver" in window) {
       observer?.disconnect();
       observer = new IntersectionObserver(entries => {
-        if (entries.some(entry => entry.isIntersecting)) reveal();
-      }, { threshold: 0.18 });
+        entries.forEach(entry => setInView(entry.isIntersecting));
+      }, { threshold: 0.12 });
       observer.observe(section);
-    } else reveal();
+    } else setInView(true);
   }
 
   render(defaults);
