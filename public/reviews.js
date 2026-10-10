@@ -31,6 +31,8 @@
     more.type = "button";
 
     let visible = 6;
+    let autoScrollTimer = 0;
+    let scrollDirection = 1;
     const renderCards = () => {
       grid.replaceChildren();
       reviews.slice(0, visible).forEach((review) => {
@@ -73,15 +75,41 @@
       more.hidden = visible >= reviews.length;
     };
 
+    const stopAutoScroll = () => {
+      if (autoScrollTimer) window.clearInterval(autoScrollTimer);
+      autoScrollTimer = 0;
+    };
+    const startAutoScroll = () => {
+      stopAutoScroll();
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      autoScrollTimer = window.setInterval(() => {
+        const maxScroll = grid.scrollWidth - grid.clientWidth;
+        if (maxScroll <= 4) return;
+        const firstCard = grid.querySelector(".customer-review-card");
+        const step = (firstCard?.getBoundingClientRect().width || grid.clientWidth) + 18;
+        if (grid.scrollLeft >= maxScroll - 4) scrollDirection = -1;
+        if (grid.scrollLeft <= 4) scrollDirection = 1;
+        grid.scrollBy({ left: scrollDirection * step, behavior: "smooth" });
+      }, 4200);
+    };
+
     more.addEventListener("click", () => {
       visible += 6;
       renderCards();
+      startAutoScroll();
+    });
+    grid.addEventListener("mouseenter", stopAutoScroll);
+    grid.addEventListener("mouseleave", startAutoScroll);
+    grid.addEventListener("focusin", stopAutoScroll);
+    grid.addEventListener("focusout", (event) => {
+      if (!grid.contains(event.relatedTarget)) startAutoScroll();
     });
     wrap.append(header, grid, more);
     section.append(wrap);
     if (faq && faq.parentNode === main) main.insertBefore(section, faq);
     else main.append(section);
     renderCards();
+    startAutoScroll();
   }
 
   fetch("/api/reviews", { cache: "no-store" })

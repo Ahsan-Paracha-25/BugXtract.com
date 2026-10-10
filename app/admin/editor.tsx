@@ -68,12 +68,13 @@ export function AdminEditor({ onLogout, username }: { onLogout: () => void; user
   }
   async function updateLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setAccountBusy(true); setAccountStatus("Updating login…");
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     try {
       const response = await fetch("/api/admin/auth/credentials", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: String(form.get("username") ?? ""), currentPassword: String(form.get("currentPassword") ?? ""), newPassword: String(form.get("newPassword") ?? "") }) });
       const result = await response.json() as { error?: string };
       if (!response.ok) throw new Error(result.error || "Could not update login.");
-      setAccountStatus("Login details updated successfully."); event.currentTarget.reset();
+      setAccountStatus("Login details updated successfully."); formElement.reset();
     } catch (error) { setAccountStatus(error instanceof Error ? error.message : "Could not update login."); }
     finally { setAccountBusy(false); }
   }
