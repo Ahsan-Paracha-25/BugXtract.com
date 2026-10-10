@@ -112,9 +112,20 @@ export function ReviewsEditor() {
     setBusy(true);
     setError("");
     try {
+      const payload = {
+        id: draft.id || undefined,
+        customerName: draft.customerName.trim(),
+        role: draft.role.trim(),
+        company: draft.company.trim(),
+        headline: draft.headline.trim(),
+        body: draft.body.trim(),
+        rating: draft.rating === "" ? "" : Number(draft.rating),
+        imageKey: draft.imageKey || "",
+        published: Boolean(draft.published),
+      };
       const response = await fetch("/api/admin/reviews", {
         method: "PUT", credentials: "same-origin", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(draft),
+        body: JSON.stringify(payload),
       });
       const result = await response.json() as { error?: string };
       if (!response.ok) throw new Error(result.error || "The review could not be saved.");

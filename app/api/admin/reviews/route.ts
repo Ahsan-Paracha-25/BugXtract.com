@@ -23,6 +23,7 @@ function normalizeImageKey(value: unknown) {
   if (typeof value !== "string" || !value.trim()) return "";
   let decoded = value.trim();
   try { decoded = decodeURIComponent(decoded); } catch { /* keep the original value */ }
+  decoded = decoded.split(/[?#]/, 1)[0];
   const match = decoded.match(/(?:^|\/)(review-[0-9a-f-]{36}\.(?:jpe?g|png|webp))$/i);
   return match?.[1] || decoded;
 }
