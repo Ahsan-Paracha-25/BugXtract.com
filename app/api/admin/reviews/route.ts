@@ -21,10 +21,10 @@ const text = (value: unknown, max: number) => typeof value === "string" && value
 function validReview(value: unknown): value is ReviewInput {
   if (!value || typeof value !== "object") return false;
   const review = value as ReviewInput;
-  const optionalText = (input: unknown, max: number) => input === "" || text(input, max);
-  const validRating = review.rating === "" || review.rating === null ||
+  const optionalText = (input: unknown, max: number) => input === undefined || input === null || input === "" || text(input, max);
+  const validRating = review.rating === undefined || review.rating === "" || review.rating === null ||
     (typeof review.rating === "number" && Number.isFinite(review.rating) && review.rating >= 1 && review.rating <= 5 && Number.isInteger(review.rating * 10));
-  const validImage = review.imageKey === "" || (typeof review.imageKey === "string" && IMAGE_KEY.test(review.imageKey));
+  const validImage = review.imageKey === undefined || review.imageKey === null || review.imageKey === "" || (typeof review.imageKey === "string" && IMAGE_KEY.test(review.imageKey));
   return (review.id === undefined || (typeof review.id === "string" && /^[0-9a-f-]{36}$/i.test(review.id))) &&
     optionalText(review.customerName, 100) && optionalText(review.role, 100) && optionalText(review.company, 120) &&
     optionalText(review.headline, 140) && optionalText(review.body, 2000) && validRating && validImage &&
