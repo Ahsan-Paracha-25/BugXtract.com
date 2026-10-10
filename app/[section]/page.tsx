@@ -11,7 +11,7 @@ export default async function SectionPage({ params }: { params: Promise<{ sectio
   return <>
     <Home />
     <Script id={`section-jump-${section}`} strategy="afterInteractive">
-      {`window.setTimeout(() => { const target = document.getElementById(${JSON.stringify(section)}); if (!target) return; const headerOffset = 92; const top = target.getBoundingClientRect().top + window.scrollY - headerOffset; window.scrollTo({ top: Math.max(0, top), behavior: "smooth" }); }, 120);`}
+      {`const jumpToSection = () => { const target = document.getElementById(${JSON.stringify(section)}); if (!target) return; const headerOffset = 92; const top = target.getBoundingClientRect().top + window.scrollY - headerOffset; window.scrollTo({ top: Math.max(0, top), behavior: "smooth" }); }; window.setTimeout(jumpToSection, 250); window.setTimeout(jumpToSection, 900);`}
     </Script>
   </>;
 }
