@@ -43,7 +43,7 @@ export async function DELETE(request: Request) {
   if (!sameOriginRequest(request)) return Response.json({ error: "This request could not be verified." }, { status: 403 });
   try {
     const payload = await request.json() as { imageKey?: unknown };
-    if (typeof payload.imageKey !== "string" || !/^review-[0-9a-f-]{36}\.(?:jpg|png|webp)$/i.test(payload.imageKey)) {
+    if (typeof payload.imageKey !== "string" || !/^review-[0-9a-f-]{36}\.(?:jpe?g|png|webp)$/i.test(payload.imageKey)) {
       return Response.json({ error: "Image not found." }, { status: 404 });
     }
     if (!env.DB || !env.BUCKET) throw new Error("Review image storage is unavailable.");

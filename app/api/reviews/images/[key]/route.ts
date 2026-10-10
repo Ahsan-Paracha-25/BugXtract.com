@@ -2,7 +2,7 @@ import { env } from "@/lib/runtime-env";
 
 export const dynamic = "force-dynamic";
 
-const SAFE_REVIEW_IMAGE_KEY = /^review-[0-9a-f-]{36}\.(?:jpg|png|webp)$/i;
+const SAFE_REVIEW_IMAGE_KEY = /^review-[0-9a-f-]{36}\.(?:jpe?g|png|webp)$/i;
 
 export async function GET(_request: Request, context: { params: Promise<{ key: string }> }) {
   const { key } = await context.params;

@@ -15,8 +15,16 @@ type ReviewInput = {
   published?: unknown;
 };
 
-const IMAGE_KEY = /^review-[0-9a-f-]{36}\.(?:jpg|png|webp)$/i;
+const IMAGE_KEY = /^review-[0-9a-f-]{36}\.(?:jpe?g|png|webp)$/i;
 const text = (value: unknown, max: number) => typeof value === "string" && value.trim().length > 0 && value.trim().length <= max;
+
+function normalizeImageKey(value: unknown) {
+  if (typeof value !== "string" || !value.trim()) return "";
+  let decoded = value.trim();
+  try { decoded = decodeURIComponent(decoded); } catch { /* keep the original value */ }
+  const match = decoded.match(/(?:^|\/)(review-[0-9a-f-]{36}\.(?:jpe?g|png|webp))$/i);
+  return match?.[1] || decoded;
+}
 
 function validReview(value: unknown): value is ReviewInput {
   if (!value || typeof value !== "object") return false;
@@ -59,30 +67,33 @@ export async function PUT(request: Request) {
 
   let payload: unknown;
   try { payload = await request.json(); } catch { return Response.json({ error: "Review details were not valid." }, { status: 400 }); }
-  if (!validReview(payload)) return Response.json({ error: "Complete the review fields and choose a valid thumbnail image." }, { status: 400 });
+  const reviewPayload = payload && typeof payload === "object"
+    ? { ...(payload as Record<string, unknown>), imageKey: normalizeImageKey((payload as ReviewInput).imageKey), published: (payload as ReviewInput).published === undefined ? true : (payload as ReviewInput).published }
+    : payload;
+  if (!validReview(reviewPayload)) return Response.json({ error: "Complete the review fields and choose a valid thumbnail image." }, { status: 400 });
 
   try {
     if (!env.DB || !env.BUCKET) throw new Error("Review storage is unavailable.");
-    if (payload.imageKey) {
-      const image = await env.BUCKET.head(payload.imageKey as string);
+    if ((reviewPayload as ReviewInput).imageKey) {
+      const image = await env.BUCKET.head((reviewPayload as ReviewInput).imageKey as string);
       if (!image) return Response.json({ error: "The uploaded thumbnail was not found. Upload it again." }, { status: 400 });
     }
 
-    const id = typeof payload.id === "string" ? payload.id : crypto.randomUUID();
+    const id = typeof (reviewPayload as ReviewInput).id === "string" ? (reviewPayload as ReviewInput).id : crypto.randomUUID();
     const now = new Date().toISOString();
-    const previous = typeof payload.id === "string"
+    const previous = typeof (reviewPayload as ReviewInput).id === "string"
       ? await env.DB.prepare("SELECT image_key AS imageKey FROM customer_reviews WHERE id = ?").bind(id).first<{ imageKey: string }>()
       : null;
 
     await env.DB.prepare(
       "INSERT INTO customer_reviews (id, customer_name, role, company, headline, body, rating, image_key, published, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET customer_name = excluded.customer_name, role = excluded.role, company = excluded.company, headline = excluded.headline, body = excluded.body, rating = excluded.rating, image_key = excluded.image_key, published = excluded.published, updated_at = excluded.updated_at"
     ).bind(
-      id, String(payload.customerName || "").trim(), String(payload.role || "").trim(), String(payload.company || "").trim(),
-      String(payload.headline || "").trim(), String(payload.body || "").trim(), Number(payload.rating) || 0, payload.imageKey as string,
-      payload.published ? 1 : 0, now, now,
+      id, String((reviewPayload as ReviewInput).customerName || "").trim(), String((reviewPayload as ReviewInput).role || "").trim(), String((reviewPayload as ReviewInput).company || "").trim(),
+      String((reviewPayload as ReviewInput).headline || "").trim(), String((reviewPayload as ReviewInput).body || "").trim(), Number((reviewPayload as ReviewInput).rating) || 0, (reviewPayload as ReviewInput).imageKey as string,
+      (reviewPayload as ReviewInput).published ? 1 : 0, now, now,
     ).run();
 
-    if (previous?.imageKey && previous.imageKey !== payload.imageKey) {
+    if (previous?.imageKey && previous.imageKey !== (reviewPayload as ReviewInput).imageKey) {
       try { await env.BUCKET.delete(previous.imageKey); }
       catch (error) { console.error("Saved review but could not clean up replaced thumbnail", error); }
     }
