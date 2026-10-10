@@ -20,6 +20,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `if (performance.getEntriesByType("navigation")[0]?.type === "reload") {
+              history.scrollRestoration = "manual";
+              window.addEventListener("pageshow", () => window.scrollTo(0, 0), { once: true });
+            }`,
+          }}
+        />
+      </head>
       <body className="antialiased">{children}</body>
     </html>
   );
