@@ -12,6 +12,7 @@ type ReviewInput = {
   body?: unknown;
   rating?: unknown;
   imageKey?: unknown;
+  imageUrl?: unknown;
   published?: unknown;
 };
 
@@ -68,7 +69,7 @@ export async function PUT(request: Request) {
   let payload: unknown;
   try { payload = await request.json(); } catch { return Response.json({ error: "Review details were not valid." }, { status: 400 }); }
   const reviewPayload = payload && typeof payload === "object"
-    ? { ...(payload as Record<string, unknown>), imageKey: normalizeImageKey((payload as ReviewInput).imageKey), published: (payload as ReviewInput).published === undefined ? true : (payload as ReviewInput).published }
+    ? { ...(payload as Record<string, unknown>), imageKey: normalizeImageKey((payload as ReviewInput).imageKey) || normalizeImageKey((payload as ReviewInput).imageUrl), published: (payload as ReviewInput).published === undefined ? true : (payload as ReviewInput).published }
     : payload;
   if (!validReview(reviewPayload)) return Response.json({ error: "Complete the review fields and choose a valid thumbnail image." }, { status: 400 });
 
