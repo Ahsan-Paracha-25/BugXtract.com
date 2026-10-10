@@ -80,11 +80,19 @@ const pricingDetailDefaults = {
   ],
 };
 
+const trustMetricDefaults = [
+  { id: "happy-customers", value: "50+", label: "Happy Customers", icon: "users", visible: true },
+  { id: "projects-delivered", value: "100+", label: "Projects Delivered", icon: "document", visible: true },
+  { id: "average-rating", value: "4.9/5", label: "Average Rating", icon: "stars", visible: true },
+  { id: "response-time", value: "24h", label: "Response Time", icon: "lightning", visible: true },
+];
+
 function enrichPricing(content) {
   const plans = Array.isArray(content?.plans) ? content.plans : [];
   const retainers = Array.isArray(content?.retainers) ? content.retainers : [];
   return {
     ...content,
+    trustMetrics: Array.isArray(content?.trustMetrics) ? content.trustMetrics : trustMetricDefaults,
     plans: plans.map(plan => ({ ...pricingDetailDefaults.plans.find(item => item.id === plan.id), ...plan, features: Array.isArray(plan.features) && plan.features.length ? plan.features : pricingDetailDefaults.plans.find(item => item.id === plan.id)?.features || [] })),
     retainers: retainers.map(plan => ({ ...pricingDetailDefaults.retainers.find(item => item.id === plan.id), ...plan })),
   };

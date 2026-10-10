@@ -19,12 +19,29 @@ export type Retainer = {
   description: string;
 };
 
+export type TrustMetric = {
+  id: string;
+  value: string;
+  label: string;
+  icon: "users" | "document" | "stars" | "lightning";
+  visible: boolean;
+};
+
+export const defaultTrustMetrics: TrustMetric[] = [
+  { id: "happy-customers", value: "50+", label: "Happy Customers", icon: "users", visible: true },
+  { id: "projects-delivered", value: "100+", label: "Projects Delivered", icon: "document", visible: true },
+  { id: "average-rating", value: "4.9/5", label: "Average Rating", icon: "stars", visible: true },
+  { id: "response-time", value: "24h", label: "Response Time", icon: "lightning", visible: true },
+];
+
 export type PricingContent = {
   plans: Plan[];
   retainers: Retainer[];
+  trustMetrics?: TrustMetric[];
 };
 
 export const defaultPricing: PricingContent = {
+  trustMetrics: defaultTrustMetrics,
   plans: [
     {
       id: "free", name: "Free QA Trial", price: "$0", billing: "One-time evaluation",
