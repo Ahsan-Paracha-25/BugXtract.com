@@ -135,3 +135,14 @@
   #services .testing-tile, #services .testing-tile svg { transition: none; animation: none !important; }
   #services .testing-tile::after { display: none; }
 }
+
+@media (prefers-reduced-motion: no-preference) {
+  #services .testing-tile.is-in-view:not(:hover) {
+    animation: service-card-scroll-in .55s cubic-bezier(.2,.75,.25,1) both;
+  }
+}
+
+@keyframes service-card-scroll-in {
+  from { opacity: .45; transform: translateY(16px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}

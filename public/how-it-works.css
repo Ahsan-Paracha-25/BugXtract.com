@@ -164,3 +164,14 @@
   #services .how-it-works .flow-card > svg,
   #services .how-it-works .step-circle { transition: none; animation: none !important; }
 }
+
+@media (prefers-reduced-motion: no-preference) {
+  #services .how-it-works .flow-card.is-in-view:not(:hover) {
+    animation: process-card-scroll-in .55s cubic-bezier(.2,.75,.25,1) both;
+  }
+}
+
+@keyframes process-card-scroll-in {
+  from { opacity: .45; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}

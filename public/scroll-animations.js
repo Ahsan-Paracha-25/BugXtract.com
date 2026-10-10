@@ -1,11 +1,12 @@
 (() => {
-  const sections = ["plans", "retainers"]
-    .map(id => document.getElementById(id))
-    .filter(Boolean);
-  if (!sections.length) return;
+  const targets = [
+    ...["plans", "retainers"].map(id => document.getElementById(id)),
+    ...document.querySelectorAll("#services .testing-tile, #services .flow-card"),
+  ].filter(Boolean);
+  if (!targets.length) return;
 
   if (!("IntersectionObserver" in window)) {
-    sections.forEach(section => section.classList.add("is-in-view"));
+    targets.forEach(target => target.classList.add("is-in-view"));
     return;
   }
 
@@ -14,5 +15,5 @@
       entry.target.classList.toggle("is-in-view", entry.isIntersecting);
     });
   }, { threshold: 0.1 });
-  sections.forEach(section => observer.observe(section));
+  targets.forEach(target => observer.observe(target));
 })();
