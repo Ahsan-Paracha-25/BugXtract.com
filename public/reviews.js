@@ -31,10 +31,13 @@
     more.type = "button";
 
     let visible = 6;
-    let autoScrollTimer = 0;
-    let scrollDirection = 1;
+    let autoScrollFrame = 0;
+    let loopWidth = 0;
+    let loopPosition = 0;
+    let lastFrameTime = 0;
     let sectionVisible = false;
     let pointerInside = false;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const renderCards = () => {
       grid.replaceChildren();
       reviews.slice(0, visible).forEach((review) => {
@@ -78,31 +81,63 @@
     };
 
     const stopAutoScroll = () => {
-      if (autoScrollTimer) window.clearInterval(autoScrollTimer);
-      autoScrollTimer = 0;
+      if (autoScrollFrame) window.cancelAnimationFrame(autoScrollFrame);
+      autoScrollFrame = 0;
+      lastFrameTime = 0;
+    };
+    const buildLoop = () => {
+      stopAutoScroll();
+      grid.querySelectorAll(".customer-review-loop-copy").forEach(card => card.remove());
+      const cards = [...grid.querySelectorAll(".customer-review-card")];
+      loopWidth = 0;
+      loopPosition = 0;
+      grid.scrollLeft = 0;
+      if (!cards.length || reducedMotion.matches) return;
+
+      const gap = parseFloat(window.getComputedStyle(grid).columnGap) || 0;
+      loopWidth = cards.reduce((width, card) => width + parseFloat(window.getComputedStyle(card).width) + gap, 0);
+      if (!loopWidth) return;
+      const copies = Math.ceil(grid.clientWidth / loopWidth) + 2;
+      for (let group = 0; group < copies; group++) {
+        cards.forEach(card => {
+          const copy = card.cloneNode(true);
+          copy.classList.add("customer-review-loop-copy");
+          copy.setAttribute("aria-hidden", "true");
+          copy.setAttribute("inert", "");
+          grid.append(copy);
+        });
+      }
+      loopPosition = loopWidth;
+      grid.scrollLeft = loopPosition;
     };
     const startAutoScroll = () => {
       stopAutoScroll();
       if (!sectionVisible || pointerInside || grid.contains(document.activeElement) || document.hidden ||
-          window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-      autoScrollTimer = window.setInterval(() => {
-        const maxScroll = grid.scrollWidth - grid.clientWidth;
-        if (maxScroll <= 4) return;
-        const firstCard = grid.querySelector(".customer-review-card");
-        const step = (firstCard?.getBoundingClientRect().width || grid.clientWidth) + 18;
-        if (grid.scrollLeft >= maxScroll - 4) scrollDirection = -1;
-        if (grid.scrollLeft <= 4) scrollDirection = 1;
-        grid.scrollBy({ left: scrollDirection * step, behavior: "smooth" });
-      }, 4200);
+          reducedMotion.matches || !loopWidth) return;
+      loopPosition = grid.scrollLeft > loopWidth ? grid.scrollLeft % loopWidth : grid.scrollLeft;
+      const tick = now => {
+        if (lastFrameTime) {
+          const elapsed = Math.min(now - lastFrameTime, 50);
+          loopPosition -= elapsed * 0.028;
+          if (loopPosition <= 0) loopPosition += loopWidth;
+          grid.scrollLeft = loopPosition;
+        }
+        lastFrameTime = now;
+        autoScrollFrame = window.requestAnimationFrame(tick);
+      };
+      autoScrollFrame = window.requestAnimationFrame(tick);
     };
 
     more.addEventListener("click", () => {
       visible += 6;
       renderCards();
+      buildLoop();
       startAutoScroll();
     });
     grid.addEventListener("mouseenter", () => { pointerInside = true; stopAutoScroll(); });
     grid.addEventListener("mouseleave", () => { pointerInside = false; startAutoScroll(); });
+    grid.addEventListener("pointerdown", stopAutoScroll);
+    grid.addEventListener("pointerup", () => window.setTimeout(startAutoScroll, 1200));
     grid.addEventListener("focusin", stopAutoScroll);
     grid.addEventListener("focusout", (event) => {
       if (!grid.contains(event.relatedTarget)) startAutoScroll();
@@ -112,6 +147,9 @@
     if (faq) faq.before(section);
     else main.append(section);
     renderCards();
+    buildLoop();
+    window.addEventListener("resize", () => { buildLoop(); startAutoScroll(); });
+    reducedMotion.addEventListener("change", () => { buildLoop(); startAutoScroll(); });
     if ("IntersectionObserver" in window) {
       const observer = new IntersectionObserver(entries => {
         sectionVisible = entries[0].isIntersecting;
