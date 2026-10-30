@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import Link from "next/link";
+const Link = ({ className, href, children }: { className?: string; href: string; children: string }) => <a className={className} href={href} onClick={event => { event.preventDefault(); window.location.assign(href); }}>{children}</a>;
 import type { PricingContent, Plan, Retainer } from "../../lib/pricing-defaults";
 import { defaultPricing, defaultTrustMetrics, featureLabels } from "../../lib/pricing-defaults";
 import { ReviewsEditor } from "./reviews-editor";
