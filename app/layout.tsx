@@ -8,8 +8,8 @@ export const metadata: Metadata = {
     "codex-preview": "development",
   },
   icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
+    icon: "/favicon.svg?v=brand-20261030-2",
+    shortcut: "/favicon.svg?v=brand-20261030-2",
   },
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#f6f9ff" },

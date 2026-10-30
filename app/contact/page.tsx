@@ -7,8 +7,9 @@ import colorSchemeCss from "../../public/color-scheme.css?raw";
 export const dynamic = "force-dynamic";
 
 export default function Contact() {
+  const logoVersion = "brand-20261030-2";
   const socialLinks = `<nav class="social-follow contact-social" aria-label="Follow BugXtract"><span class="social-follow-label">Follow BugXtract</span><a class="social-follow-link" href="https://www.facebook.com/profile.php?id=61595187271380" target="_blank" rel="noopener noreferrer" aria-label="Follow BugXtract on Facebook">f</a><a class="social-follow-link" href="https://www.youtube.com/@BugXtract" target="_blank" rel="noopener noreferrer" aria-label="Follow BugXtract on YouTube">▶</a><a class="social-follow-link" href="https://www.instagram.com/bugxtract" target="_blank" rel="noopener noreferrer" aria-label="Follow BugXtract on Instagram">◎</a><a class="social-follow-link" href="https://www.tiktok.com/@bugxtract.com" target="_blank" rel="noopener noreferrer" aria-label="Follow BugXtract on TikTok">♪</a><a class="social-follow-link" href="https://www.linkedin.com/company/bugxtract-com/posts/" target="_blank" rel="noopener noreferrer" aria-label="Follow BugXtract on LinkedIn">in</a></nav>`;
-  const bodyWithSocialLinks = contactBody.replace(
+  const bodyWithSocialLinks = contactBody.replaceAll("/bugxtract-logo.svg", `/bugxtract-logo.svg?v=${logoVersion}`).replace(
     '</p></div><div class="contact-layout">',
     `</p>${socialLinks}</div><div class="contact-layout">`,
   );

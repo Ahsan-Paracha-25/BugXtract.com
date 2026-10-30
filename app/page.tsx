@@ -17,7 +17,10 @@ import mobileResponsiveCss from "../public/mobile-responsive.css?raw";
 export const dynamic = "force-dynamic";
 
 export default function Home() {
-  const bodyWithGrowthSections = landingBody.replace("</main><footer>", `${growthSections}</main><footer>`);
+  const logoVersion = "brand-20261030-2";
+  const versionedLandingBody = landingBody.replaceAll("bugxtract-logo.svg", `bugxtract-logo.svg?v=${logoVersion}`);
+  const versionedGrowthSections = growthSections.replaceAll("/bugxtract-logo.svg", `/bugxtract-logo.svg?v=${logoVersion}`);
+  const bodyWithGrowthSections = versionedLandingBody.replace("</main><footer>", `${versionedGrowthSections}</main><footer>`);
 
   return <><style dangerouslySetInnerHTML={{ __html: css }} /><style dangerouslySetInnerHTML={{ __html: qualityCss }} /><style dangerouslySetInnerHTML={{ __html: serviceCardsCss }} /><style dangerouslySetInnerHTML={{ __html: howItWorksCss }} /><style dangerouslySetInnerHTML={{ __html: productsDialogCss }} /><style dangerouslySetInnerHTML={{ __html: pricingDiscountsCss }} /><style dangerouslySetInnerHTML={{ __html: retainersCss }} /><style dangerouslySetInnerHTML={{ __html: customerReviewsCss }} /><style dangerouslySetInnerHTML={{ __html: trustMetricsCss }} /><style dangerouslySetInnerHTML={{ __html: colorSchemeCss }} /><style dangerouslySetInnerHTML={{ __html: growthSectionsCss }} /><style dangerouslySetInnerHTML={{ __html: mobileResponsiveCss }} />
     <div dangerouslySetInnerHTML={{ __html: bodyWithGrowthSections }} />
