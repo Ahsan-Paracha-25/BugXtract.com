@@ -1,0 +1,33 @@
+.mobile-nav-toggle{display:none}
+
+@media(max-width:700px){
+  header nav{position:relative}
+  .mobile-nav-toggle{display:grid;place-content:center;gap:4px;width:40px;height:40px;padding:0;border:1px solid #ffffff4d;border-radius:8px;background:#123c63;color:#fff;flex:none}
+  .mobile-nav-toggle i{display:block;width:18px;height:2px;border-radius:99px;background:currentColor}
+  .navlinks.is-open{position:absolute;top:calc(100% + 7px);left:0;right:0;z-index:20;display:grid;gap:0;padding:8px;border:1px solid #234d75;border-radius:12px;background:#092540;box-shadow:0 16px 34px #061a2e55}
+  .navlinks.is-open a{padding:12px 14px;border-radius:7px;color:#f5f9ff;font-size:14px}
+  .navlinks.is-open a:hover,.navlinks.is-open a:focus-visible{background:#174b76;color:#8cf5e4}
+  nav>.btn{min-width:64px;padding:9px 8px;font-size:0}
+  nav>.btn::after{content:"Plans";font-size:11px}
+
+  #plans .mobile-hint{display:flex;align-items:center;gap:7px;color:#3b647d;font-size:13px}
+  #plans .mobile-hint::before{content:"↔";display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#dceef2;color:#087c76;font-size:15px}
+  #plans .table-scroll{position:relative;scroll-snap-type:x proximity}
+  #plans thead th:first-child,#plans tbody th,#plans tfoot td:first-child{position:sticky;left:0;z-index:3;box-shadow:8px 0 12px -12px #0a2948}
+  #plans thead th:first-child{background:#eaf2f8!important}
+  #plans tbody th{background:#fff!important}
+  #plans tbody tr:nth-child(even) th{background:#f8fbfd!important}
+  #plans tfoot td:first-child{background:#f7fafc!important}
+}
+
+@media(prefers-color-scheme:dark) and (max-width:700px){
+  .navlinks.is-open{border-color:#315577;background:#0b213b}
+  .navlinks.is-open a:hover,.navlinks.is-open a:focus-visible{background:#173d60}
+  .mobile-nav-toggle{border-color:#497092;background:#173d60}
+  .mobile-nav-toggle i{background:#f4f8ff}
+  #plans .mobile-hint{color:#c8d9eb}
+  #plans .mobile-hint::before{background:#173d60;color:#8de5d5}
+  #plans thead th:first-child{background:#163758!important;color:#f4f8ff!important}
+  #plans tbody th,#plans tbody tr:nth-child(even) th{background:#12304f!important;color:#f2f7ff!important}
+  #plans tfoot td:first-child{background:#102b49!important;color:#c8d9eb!important}
+}

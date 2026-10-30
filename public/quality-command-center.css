@@ -171,6 +171,7 @@
 }
 
 @media (max-width: 700px) {
+  .reference-hero .hero-grid { grid-template-columns: minmax(0, 1fr); row-gap: 20px; }
   .hero-visual.qa-command-center { width: 100%; min-height: 445px; margin: 0; }
   .qa-stage { min-height: 440px; }
   .qa-stage-grid { inset: 2% -3%; }

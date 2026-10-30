@@ -33,6 +33,7 @@
     }, true);
     const more = make("button", "customer-reviews-more", "Show more reviews");
     more.type = "button";
+    const mobileHint = make("p", "customer-reviews-mobile-hint", "Swipe to read more reviews →");
 
     let visible = 6;
     let autoScrollFrame = 0;
@@ -96,7 +97,7 @@
       loopWidth = 0;
       loopPosition = 0;
       grid.scrollLeft = 0;
-      if (!cards.length || reducedMotion.matches) return;
+      if (!cards.length || reducedMotion.matches || window.matchMedia("(max-width: 620px)").matches) return;
 
       const gap = parseFloat(window.getComputedStyle(grid).columnGap) || 0;
       loopWidth = cards.reduce((width, card) => width + parseFloat(window.getComputedStyle(card).width) + gap, 0);
@@ -117,7 +118,7 @@
     const startAutoScroll = () => {
       stopAutoScroll();
       if (!sectionVisible || pointerInside || grid.contains(document.activeElement) || document.hidden ||
-          reducedMotion.matches || !loopWidth) return;
+          reducedMotion.matches || window.matchMedia("(max-width: 620px)").matches || !loopWidth) return;
       loopPosition = grid.scrollLeft > loopWidth ? grid.scrollLeft % loopWidth : grid.scrollLeft;
       const tick = now => {
         if (lastFrameTime) {
@@ -146,7 +147,7 @@
     grid.addEventListener("focusout", (event) => {
       if (!grid.contains(event.relatedTarget)) startAutoScroll();
     });
-    wrap.append(header, grid, more);
+    wrap.append(header, grid, mobileHint, more);
     section.append(wrap);
     if (coverage) coverage.before(section);
     else if (faq) faq.before(section);
