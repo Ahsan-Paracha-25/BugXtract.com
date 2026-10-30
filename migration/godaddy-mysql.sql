@@ -44,6 +44,14 @@ CREATE TABLE IF NOT EXISTS customer_reviews (
   INDEX idx_customer_reviews_published_updated (published, updated_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Review thumbnails are stored in MySQL so they survive every website deployment.
+CREATE TABLE IF NOT EXISTS customer_review_images (
+  image_key VARCHAR(512) NOT NULL PRIMARY KEY,
+  content_type VARCHAR(100) NOT NULL,
+  image_data MEDIUMBLOB NOT NULL,
+  created_at VARCHAR(64) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS contact_settings (
   id INT NOT NULL PRIMARY KEY,
   recipient_email VARCHAR(255) NOT NULL,

@@ -9,6 +9,8 @@ const clientRoot = fileURLToPath(new URL("./dist/client/", import.meta.url));
 const serverRoot = fileURLToPath(new URL("./dist/server/", import.meta.url));
 const port = Number(process.env.PORT || 3000);
 let pool;
+let reviewImageTable;
+const REVIEW_IMAGE_KEY = /^review-[0-9a-f-]{36}\.(?:jpe?g|png|webp)$/i;
 
 async function getPool() {
   if (pool) return pool;
@@ -66,6 +68,26 @@ function database() {
   };
 }
 
+async function ensureReviewImageTable() {
+  if (!reviewImageTable) {
+    reviewImageTable = (async () => {
+      const connection = await getPool();
+      if (!connection) throw new Error("GoDaddy MySQL database is not configured");
+      await connection.execute(`CREATE TABLE IF NOT EXISTS customer_review_images (
+        image_key VARCHAR(512) NOT NULL PRIMARY KEY,
+        content_type VARCHAR(100) NOT NULL,
+        image_data MEDIUMBLOB NOT NULL,
+        created_at VARCHAR(40) NOT NULL
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`);
+      return connection;
+    })().catch(error => {
+      reviewImageTable = undefined;
+      throw error;
+    });
+  }
+  return reviewImageTable;
+}
+
 const pricingDetailDefaults = {
   plans: [
     { id: "free", audience: "Service evaluation", hours: "2 hours", description: "Try our manual QA approach on one critical user flow.", popular: false, features: ["One critical flow", "Focused checks", "1 configuration", "—", "—", "—", "Short findings report", "—", "Recommendations"] },
@@ -99,15 +121,29 @@ function enrichPricing(content) {
 }
 
 const bucket = {
-  async put(key, value) {
-    await mkdir(root, { recursive: true });
+  async put(key, value, options = {}) {
     const safe = basename(key);
     const data = value instanceof ArrayBuffer ? Buffer.from(value) : Buffer.from(value);
+    if (REVIEW_IMAGE_KEY.test(safe)) {
+      const connection = await ensureReviewImageTable();
+      const contentType = options?.httpMetadata?.contentType || (safe.endsWith(".png") ? "image/png" : safe.endsWith(".webp") ? "image/webp" : "image/jpeg");
+      await connection.execute(
+        "INSERT INTO customer_review_images (image_key, content_type, image_data, created_at) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE content_type = VALUES(content_type), image_data = VALUES(image_data), created_at = VALUES(created_at)",
+        [safe, contentType, data, new Date().toISOString()],
+      );
+      return;
+    }
+    await mkdir(root, { recursive: true });
     await writeFile(join(root, safe), data);
   },
   async head(key) {
+    const safe = basename(key);
+    if (REVIEW_IMAGE_KEY.test(safe)) {
+      const connection = await ensureReviewImageTable();
+      const [rows] = await connection.execute("SELECT OCTET_LENGTH(image_data) AS size FROM customer_review_images WHERE image_key = ? LIMIT 1", [safe]);
+      return rows[0] || null;
+    }
     try {
-      const safe = basename(key);
       const info = await stat(join(root, safe));
       return { size: info.size };
     } catch {
@@ -115,20 +151,32 @@ const bucket = {
     }
   },
   async get(key) {
+    const safe = basename(key);
+    if (REVIEW_IMAGE_KEY.test(safe)) {
+      const connection = await ensureReviewImageTable();
+      const [rows] = await connection.execute("SELECT content_type AS contentType, image_data AS imageData FROM customer_review_images WHERE image_key = ? LIMIT 1", [safe]);
+      const image = rows[0];
+      if (!image) return null;
+      const contentType = image.contentType || "application/octet-stream";
+      return { body: Buffer.from(image.imageData), httpMetadata: { contentType }, writeHttpMetadata(headers) { headers.set("Content-Type", contentType); } };
+    }
     try {
-      const safe = basename(key);
       const body = await readFile(join(root, safe));
       const contentType = safe.endsWith(".png") ? "image/png" : safe.endsWith(".webp") ? "image/webp" : "image/jpeg";
       return { body, httpMetadata: { contentType }, writeHttpMetadata(headers) { headers.set("Content-Type", contentType); } };
     } catch {
-      // The original managed-site thumbnails are not part of the GitHub export.
-      // Return a clean initials avatar until the owner uploads the real image.
-      const initials = key.includes("e22fd") ? "DT" : key.includes("2b383") ? "MA" : key.includes("529627") ? "SM" : "QA";
-      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0b2a45"/><stop offset="1" stop-color="#18b7a0"/></linearGradient></defs><rect width="160" height="160" rx="80" fill="url(#g)"/><text x="80" y="95" text-anchor="middle" font-family="Arial,sans-serif" font-size="52" font-weight="700" fill="white">${initials}</text></svg>`;
-      return { body: Buffer.from(svg), httpMetadata: { contentType: "image/svg+xml" }, writeHttpMetadata(headers) { headers.set("Content-Type", "image/svg+xml"); } };
+      return null;
     }
   },
-  async delete(key) { try { await unlink(join(root, basename(key))); } catch {} },
+  async delete(key) {
+    const safe = basename(key);
+    if (REVIEW_IMAGE_KEY.test(safe)) {
+      const connection = await ensureReviewImageTable();
+      await connection.execute("DELETE FROM customer_review_images WHERE image_key = ?", [safe]);
+      return;
+    }
+    try { await unlink(join(root, safe)); } catch {}
+  },
   async list() { return { objects: (await readdir(root, { withFileTypes: true }).catch(() => [])).filter(x => x.isFile()).map(x => ({ key: x.name })) }; },
 };
 
