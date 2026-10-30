@@ -95,3 +95,11 @@ export const contactLeadActivity = sqliteTable("contact_lead_activity", {
   author: text("author").notNull(),
   createdAt: text("created_at").notNull(),
 }, (table) => [index("idx_contact_lead_activity_lead_created").on(table.leadId, table.createdAt)]);
+
+export const customerProfiles = sqliteTable("customer_profiles", {
+  leadId: text("lead_id").primaryKey(),
+  engagementStatus: text("engagement_status").notNull().default("Active"),
+  startedAt: text("started_at").notNull().default(""),
+  deliveryNotes: text("delivery_notes").notNull().default(""),
+  updatedAt: text("updated_at").notNull(),
+});

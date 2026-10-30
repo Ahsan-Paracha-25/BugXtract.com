@@ -74,6 +74,13 @@ export async function ensureContactLeadStorage() {
         author VARCHAR(100) NOT NULL,
         created_at VARCHAR(40) NOT NULL
       )`).run();
+      await env.DB!.prepare(`CREATE TABLE IF NOT EXISTS customer_profiles (
+        lead_id VARCHAR(64) PRIMARY KEY,
+        engagement_status VARCHAR(32) NOT NULL DEFAULT 'Active',
+        started_at VARCHAR(40) NOT NULL DEFAULT '',
+        delivery_notes TEXT NOT NULL,
+        updated_at VARCHAR(40) NOT NULL
+      )`).run();
     }).then(() => undefined).catch(error => {
       schemaPromise = undefined;
       throw error;

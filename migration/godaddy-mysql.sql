@@ -112,6 +112,14 @@ CREATE TABLE IF NOT EXISTS contact_lead_activity (
   INDEX idx_contact_lead_activity_lead_created (lead_id, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS customer_profiles (
+  lead_id VARCHAR(64) NOT NULL PRIMARY KEY,
+  engagement_status VARCHAR(32) NOT NULL DEFAULT 'Active',
+  started_at VARCHAR(40) NOT NULL DEFAULT '',
+  delivery_notes TEXT NOT NULL,
+  updated_at VARCHAR(40) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 INSERT INTO contact_settings (id, recipient_email, relay_url, updated_at, updated_by)
 VALUES (1, 'hello@bugxtract.com', NULL, UTC_TIMESTAMP(), 'migration')
 ON DUPLICATE KEY UPDATE recipient_email = VALUES(recipient_email);

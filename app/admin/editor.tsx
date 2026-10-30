@@ -6,6 +6,7 @@ import type { PricingContent, Plan, Retainer } from "../../lib/pricing-defaults"
 import { defaultPricing, defaultTrustMetrics, featureLabels } from "../../lib/pricing-defaults";
 import { ReviewsEditor } from "./reviews-editor";
 import { LeadsEditor } from "./leads-editor";
+import { CustomersEditor } from "./customers-editor";
 import { TrustMetricsEditor } from "./trust-metrics-editor";
 import "./editor.css";
 import "./usd-input.css";
@@ -54,7 +55,7 @@ function toStoredPricing(data: EditablePricing): PricingContent {
   }) };
 }
 
-export function AdminEditor({ onLogout, username, view = "content" }: { onLogout: () => void; username: string; view?: "content" | "leads" }) {
+export function AdminEditor({ onLogout, username, view = "content" }: { onLogout: () => void; username: string; view?: "content" | "leads" | "customers" }) {
   const [content, setContent] = useState<EditablePricing>(() => toEditablePricing(defaultPricing));
   const [status, setStatus] = useState("Loading saved plans…");
   const [busy, setBusy] = useState(false);
@@ -85,8 +86,9 @@ export function AdminEditor({ onLogout, username, view = "content" }: { onLogout
     } catch (error) { setAccountStatus(error instanceof Error ? error.message : "Could not update login."); }
     finally { setAccountBusy(false); }
   }
-  if (view === "leads") return <main className="admin-shell"><header className="admin-head"><div><p className="admin-kicker">BugXtract.com · Secure admin</p><h1>Lead management</h1><p>Review and manage every inquiry submitted through your Contact Us form.</p></div><div className="admin-head-actions"><span>Signed in as <strong>{username}</strong></span><Link className="admin-back" href="/admin">Website content</Link><Link className="admin-back" href="/">View website</Link><button className="admin-secondary" onClick={onLogout}>Sign out</button></div></header><LeadsEditor /></main>;
-  return <main className="admin-shell"><header className="admin-head"><div><p className="admin-kicker">BugXtract.com · Secure admin</p><h1>Website content</h1><p>Manage your trust metrics, offers, monthly retainers, and customer reviews.</p></div><div className="admin-head-actions"><span>Signed in as <strong>{username}</strong></span><Link className="admin-back" href="/admin/leads">Leads</Link><Link className="admin-back" href="/">View website</Link><button className="admin-secondary" onClick={onLogout}>Sign out</button></div></header>
+  if (view === "leads") return <main className="admin-shell"><header className="admin-head"><div><p className="admin-kicker">BugXtract.com · Secure admin</p><h1>Lead management</h1><p>Review and manage every inquiry submitted through your Contact Us form.</p></div><div className="admin-head-actions"><span>Signed in as <strong>{username}</strong></span><Link className="admin-back" href="/admin/customers">Customers</Link><Link className="admin-back" href="/admin">Website content</Link><Link className="admin-back" href="/">View website</Link><button className="admin-secondary" onClick={onLogout}>Sign out</button></div></header><LeadsEditor /></main>;
+  if (view === "customers") return <main className="admin-shell"><header className="admin-head"><div><p className="admin-kicker">BugXtract.com · Secure admin</p><h1>Customer directory</h1><p>Manage your one-time customers and ongoing QA retainers.</p></div><div className="admin-head-actions"><span>Signed in as <strong>{username}</strong></span><Link className="admin-back" href="/admin/leads">Leads</Link><Link className="admin-back" href="/admin">Website content</Link><Link className="admin-back" href="/">View website</Link><button className="admin-secondary" onClick={onLogout}>Sign out</button></div></header><CustomersEditor /></main>;
+  return <main className="admin-shell"><header className="admin-head"><div><p className="admin-kicker">BugXtract.com · Secure admin</p><h1>Website content</h1><p>Manage your trust metrics, offers, monthly retainers, and customer reviews.</p></div><div className="admin-head-actions"><span>Signed in as <strong>{username}</strong></span><Link className="admin-back" href="/admin/leads">Leads</Link><Link className="admin-back" href="/admin/customers">Customers</Link><Link className="admin-back" href="/">View website</Link><button className="admin-secondary" onClick={onLogout}>Sign out</button></div></header>
     <div className="admin-toolbar"><span aria-live="polite">{status}</span><button className="admin-button" onClick={save} disabled={busy}>{busy ? "Saving…" : "Save and publish changes"}</button></div>
     <TrustMetricsEditor metrics={content.trustMetrics ?? defaultTrustMetrics} onChange={trustMetrics => setContent(current => ({ ...current, trustMetrics }))} onSave={save} busy={busy} status={status} />
     <section className="editor-section"><div className="editor-title"><div><h2>Project plans</h2><p>Price, hours, audience, description and included coverage.</p></div><button className="admin-secondary" onClick={() => setContent(c => ({ ...c, plans: [...c.plans, blankPlan(c.plans.length)] }))}>+ Add plan</button></div>
