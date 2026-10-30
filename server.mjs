@@ -180,6 +180,11 @@ const bucket = {
   async list() { return { objects: (await readdir(root, { withFileTypes: true }).catch(() => [])).filter(x => x.isFile()).map(x => ({ key: x.name })) }; },
 };
 
+async function reviewImageUrl(key) {
+  if (!key || !(await bucket.head(key))) return "";
+  return `/api/reviews/images/${encodeURIComponent(key)}`;
+}
+
 function env() {
   return {
     DB: database(),
@@ -276,13 +281,15 @@ const server = http.createServer(async (req, res) => {
 
     if (pathname === "/api/reviews" && req.method === "GET") {
       const result = await database().prepare("SELECT id, customer_name AS customerName, role, company, headline, body, rating, image_key AS imageKey, updated_at AS updatedAt FROM customer_reviews WHERE published = 1 ORDER BY updated_at DESC").all();
-      return json(res, 200, result.results.map(row => ({ ...row, imageUrl: row.imageKey ? `/api/reviews/images/${encodeURIComponent(row.imageKey)}` : "" })), { "cache-control": "no-store" });
+      const reviews = await Promise.all(result.results.map(async row => ({ ...row, imageUrl: await reviewImageUrl(row.imageKey) })));
+      return json(res, 200, reviews, { "cache-control": "no-store" });
     }
 
     if (pathname === "/api/admin/reviews" && req.method === "GET") {
       if (!sessionUsername(req)) return json(res, 401, { error: "Admin sign-in required." });
       const result = await database().prepare("SELECT id, customer_name AS customerName, role, company, headline, body, rating, image_key AS imageKey, published, created_at AS createdAt, updated_at AS updatedAt FROM customer_reviews ORDER BY updated_at DESC").all();
-      return json(res, 200, result.results.map(row => ({ ...row, imageUrl: row.imageKey ? `/api/reviews/images/${encodeURIComponent(row.imageKey)}` : "" })), { "cache-control": "no-store" });
+      const reviews = await Promise.all(result.results.map(async row => ({ ...row, imageUrl: await reviewImageUrl(row.imageKey) })));
+      return json(res, 200, reviews, { "cache-control": "no-store" });
     }
 
     const request = new Request(url, { method: req.method, headers: req.headers, body });

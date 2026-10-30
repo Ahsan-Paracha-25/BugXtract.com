@@ -51,12 +51,13 @@ export async function GET(request: Request) {
       id: string; customerName: string; role: string; company: string; headline: string; body: string;
       rating: number; imageKey: string; published: number; createdAt: string; updatedAt: string;
     }>();
-    return Response.json(results.map(({ imageKey, ...review }) => ({
+    const response = await Promise.all(results.map(async ({ imageKey, ...review }) => ({
       ...review,
       published: review.published === 1,
       imageKey,
-      imageUrl: imageKey ? `/api/reviews/images/${encodeURIComponent(imageKey)}` : "",
-    })), { headers: { "Cache-Control": "no-store" } });
+      imageUrl: imageKey && await env.BUCKET?.head(imageKey) ? `/api/reviews/images/${encodeURIComponent(imageKey)}` : "",
+    })));
+    return Response.json(response, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     console.error("Could not load admin customer reviews", error);
     return Response.json({ error: "Reviews could not be loaded. Please try again." }, { status: 503 });

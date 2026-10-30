@@ -19,10 +19,11 @@ export async function GET() {
       updatedAt: string;
     }>();
 
-    return Response.json(results.map(({ imageKey, ...review }) => ({
+    const response = await Promise.all(results.map(async ({ imageKey, ...review }) => ({
       ...review,
-      imageUrl: imageKey ? `/api/reviews/images/${encodeURIComponent(imageKey)}` : "",
-    })), { headers: { "Cache-Control": "no-store" } });
+      imageUrl: imageKey && await env.BUCKET?.head(imageKey) ? `/api/reviews/images/${encodeURIComponent(imageKey)}` : "",
+    })));
+    return Response.json(response, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     console.error("Could not load public customer reviews", error);
     return Response.json({ error: "Customer reviews are temporarily unavailable." }, { status: 503 });

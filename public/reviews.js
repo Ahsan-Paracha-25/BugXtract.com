@@ -28,6 +28,9 @@
     header.append(make("p", "", "Feedback shared by customers we’ve worked with."));
     const grid = make("div", "customer-reviews-grid");
     grid.setAttribute("aria-live", "polite");
+    grid.addEventListener("error", (event) => {
+      if (event.target instanceof HTMLImageElement) event.target.remove();
+    }, true);
     const more = make("button", "customer-reviews-more", "Show more reviews");
     more.type = "button";
 
