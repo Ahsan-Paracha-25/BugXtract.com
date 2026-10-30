@@ -33,7 +33,7 @@
     }, true);
     const more = make("button", "customer-reviews-more", "Show more reviews");
     more.type = "button";
-    const mobileHint = make("p", "customer-reviews-mobile-hint", "Swipe to read more reviews →");
+    const mobileHint = make("p", "customer-reviews-mobile-hint", "Reviews move automatically — swipe anytime →");
 
     let visible = 6;
     let autoScrollFrame = 0;
@@ -97,7 +97,7 @@
       loopWidth = 0;
       loopPosition = 0;
       grid.scrollLeft = 0;
-      if (!cards.length || reducedMotion.matches || window.matchMedia("(max-width: 620px)").matches) return;
+      if (!cards.length || reducedMotion.matches) return;
 
       const gap = parseFloat(window.getComputedStyle(grid).columnGap) || 0;
       loopWidth = cards.reduce((width, card) => width + parseFloat(window.getComputedStyle(card).width) + gap, 0);
@@ -107,6 +107,7 @@
         cards.forEach(card => {
           const copy = card.cloneNode(true);
           copy.classList.add("customer-review-loop-copy");
+          copy.style.animation = "none";
           copy.setAttribute("aria-hidden", "true");
           copy.setAttribute("inert", "");
           grid.append(copy);
@@ -118,7 +119,7 @@
     const startAutoScroll = () => {
       stopAutoScroll();
       if (!sectionVisible || pointerInside || grid.contains(document.activeElement) || document.hidden ||
-          reducedMotion.matches || window.matchMedia("(max-width: 620px)").matches || !loopWidth) return;
+          reducedMotion.matches || !loopWidth) return;
       loopPosition = grid.scrollLeft > loopWidth ? grid.scrollLeft % loopWidth : grid.scrollLeft;
       const tick = now => {
         if (lastFrameTime) {
