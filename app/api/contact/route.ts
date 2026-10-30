@@ -1,6 +1,7 @@
 import { env } from "@/lib/runtime-env";
 import { sameOriginRequest } from "../../../lib/admin-auth";
 import { getContactSettings } from "../../../lib/contact-settings";
+import { createContactLead } from "../../../lib/contact-leads";
 
 export const dynamic = "force-dynamic";
 
@@ -82,6 +83,12 @@ export async function POST(request: Request) {
       }, { status: 503 });
     }
     if (!(await withinRateLimit(request))) return Response.json({ error: "Too many inquiries were sent from this connection. Please try again in a few minutes." }, { status: 429 });
+    // Save before sending the email so a temporary email-provider outage never loses a valid inquiry.
+    await createContactLead({
+      name: payload.name.trim(), email: payload.email.trim(), company: payload.company.trim(), whatsapp: payload.whatsapp.trim(),
+      website: payload.website.trim(), service: payload.service.trim(), plan: payload.plan.trim(), timeline: payload.timeline.trim(),
+      budget: payload.budget.trim(), message: payload.message.trim(),
+    });
     const rows: Array<[string, string]> = [
       ["Name", payload.name.trim()], ["Work email", payload.email.trim()], ["Company", payload.company.trim() || "Not specified"],
       ["WhatsApp number", payload.whatsapp.trim() || "Not specified"], ["Product / website URL", payload.website.trim() || "Not specified"],

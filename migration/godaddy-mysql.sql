@@ -66,6 +66,26 @@ CREATE TABLE IF NOT EXISTS contact_submission_limits (
   window_started BIGINT NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Contact form inquiries retained for the protected admin lead inbox.
+CREATE TABLE IF NOT EXISTS contact_leads (
+  id VARCHAR(64) NOT NULL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(254) NOT NULL,
+  company VARCHAR(150) NOT NULL DEFAULT '',
+  whatsapp VARCHAR(30) NOT NULL DEFAULT '',
+  website VARCHAR(500) NOT NULL DEFAULT '',
+  service VARCHAR(120) NOT NULL,
+  plan VARCHAR(300) NOT NULL,
+  timeline VARCHAR(40) NOT NULL DEFAULT '',
+  budget VARCHAR(80) NOT NULL DEFAULT '',
+  message TEXT NOT NULL,
+  status VARCHAR(32) NOT NULL DEFAULT 'New',
+  created_at VARCHAR(40) NOT NULL,
+  updated_at VARCHAR(40) NOT NULL,
+  INDEX idx_contact_leads_created_at (created_at),
+  INDEX idx_contact_leads_status_created_at (status, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 INSERT INTO contact_settings (id, recipient_email, relay_url, updated_at, updated_by)
 VALUES (1, 'hello@bugxtract.com', NULL, UTC_TIMESTAMP(), 'migration')
 ON DUPLICATE KEY UPDATE recipient_email = VALUES(recipient_email);

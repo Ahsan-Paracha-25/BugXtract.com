@@ -51,3 +51,23 @@ export const contactSubmissionLimits = sqliteTable("contact_submission_limits", 
   submissions: integer("submissions").notNull(),
   windowStarted: integer("window_started").notNull(),
 });
+
+export const contactLeads = sqliteTable("contact_leads", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  company: text("company").notNull().default(""),
+  whatsapp: text("whatsapp").notNull().default(""),
+  website: text("website").notNull().default(""),
+  service: text("service").notNull(),
+  plan: text("plan").notNull(),
+  timeline: text("timeline").notNull().default(""),
+  budget: text("budget").notNull().default(""),
+  message: text("message").notNull(),
+  status: text("status").notNull().default("New"),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
+}, (table) => [
+  index("idx_contact_leads_created_at").on(table.createdAt),
+  index("idx_contact_leads_status_created_at").on(table.status, table.createdAt),
+]);

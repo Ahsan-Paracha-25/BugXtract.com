@@ -43,6 +43,13 @@
       "when": 1791469034168,
       "tag": "0005_short_roulette",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1793381887500,
+      "tag": "0006_wonderful_alice",
+      "breakpoints": true
     }
   ]
 }
