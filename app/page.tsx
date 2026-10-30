@@ -13,16 +13,18 @@ import colorSchemeCss from "../public/color-scheme.css?raw";
 import growthSections from "../public/growth-sections.html?raw";
 import growthSectionsCss from "../public/growth-sections.css?raw";
 import mobileResponsiveCss from "../public/mobile-responsive.css?raw";
+import brandLockupCss from "../public/brand-lockup.css?raw";
 
 export const dynamic = "force-dynamic";
 
 export default function Home() {
   const logoVersion = "brand-20261030-2";
-  const versionedLandingBody = landingBody.replaceAll("bugxtract-logo.svg", `bugxtract-logo.svg?v=${logoVersion}`);
+  const fullBrandLockup = '<span class="brand-lockup"><span class="precision-wordmark">BugXtract<span>.com</span></span><span class="brand-tagline">Test Deeper. Launch Safer.</span></span>';
+  const versionedLandingBody = landingBody.replaceAll("bugxtract-logo.svg", `bugxtract-logo.svg?v=${logoVersion}`).replaceAll('<span class="precision-wordmark">BugXtract<span>.com</span></span>', fullBrandLockup);
   const versionedGrowthSections = growthSections.replaceAll("/bugxtract-logo.svg", `/bugxtract-logo.svg?v=${logoVersion}`);
   const bodyWithGrowthSections = versionedLandingBody.replace("</main><footer>", `${versionedGrowthSections}</main><footer>`);
 
-  return <><style dangerouslySetInnerHTML={{ __html: css }} /><style dangerouslySetInnerHTML={{ __html: qualityCss }} /><style dangerouslySetInnerHTML={{ __html: serviceCardsCss }} /><style dangerouslySetInnerHTML={{ __html: howItWorksCss }} /><style dangerouslySetInnerHTML={{ __html: productsDialogCss }} /><style dangerouslySetInnerHTML={{ __html: pricingDiscountsCss }} /><style dangerouslySetInnerHTML={{ __html: retainersCss }} /><style dangerouslySetInnerHTML={{ __html: customerReviewsCss }} /><style dangerouslySetInnerHTML={{ __html: trustMetricsCss }} /><style dangerouslySetInnerHTML={{ __html: colorSchemeCss }} /><style dangerouslySetInnerHTML={{ __html: growthSectionsCss }} /><style dangerouslySetInnerHTML={{ __html: mobileResponsiveCss }} />
+  return <><style dangerouslySetInnerHTML={{ __html: css }} /><style dangerouslySetInnerHTML={{ __html: qualityCss }} /><style dangerouslySetInnerHTML={{ __html: serviceCardsCss }} /><style dangerouslySetInnerHTML={{ __html: howItWorksCss }} /><style dangerouslySetInnerHTML={{ __html: productsDialogCss }} /><style dangerouslySetInnerHTML={{ __html: pricingDiscountsCss }} /><style dangerouslySetInnerHTML={{ __html: retainersCss }} /><style dangerouslySetInnerHTML={{ __html: customerReviewsCss }} /><style dangerouslySetInnerHTML={{ __html: trustMetricsCss }} /><style dangerouslySetInnerHTML={{ __html: colorSchemeCss }} /><style dangerouslySetInnerHTML={{ __html: growthSectionsCss }} /><style dangerouslySetInnerHTML={{ __html: mobileResponsiveCss }} /><style dangerouslySetInnerHTML={{ __html: brandLockupCss }} />
     <div dangerouslySetInnerHTML={{ __html: bodyWithGrowthSections }} />
     <Script src="/legacy.js" strategy="afterInteractive" />
     <Script src="/pricing.js?v=live-pricing-20261008" strategy="afterInteractive" />
