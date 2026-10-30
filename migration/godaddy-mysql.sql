@@ -86,6 +86,32 @@ CREATE TABLE IF NOT EXISTS contact_leads (
   INDEX idx_contact_leads_status_created_at (status, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS contact_lead_metadata (
+  lead_id VARCHAR(64) NOT NULL PRIMARY KEY,
+  lead_type VARCHAR(32) NOT NULL DEFAULT 'Prospect',
+  follow_up_at VARCHAR(40) NOT NULL DEFAULT '',
+  updated_at VARCHAR(40) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS contact_lead_notes (
+  id VARCHAR(64) NOT NULL PRIMARY KEY,
+  lead_id VARCHAR(64) NOT NULL,
+  note TEXT NOT NULL,
+  author VARCHAR(100) NOT NULL,
+  created_at VARCHAR(40) NOT NULL,
+  INDEX idx_contact_lead_notes_lead_created (lead_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS contact_lead_activity (
+  id VARCHAR(64) NOT NULL PRIMARY KEY,
+  lead_id VARCHAR(64) NOT NULL,
+  kind VARCHAR(48) NOT NULL,
+  detail VARCHAR(500) NOT NULL,
+  author VARCHAR(100) NOT NULL,
+  created_at VARCHAR(40) NOT NULL,
+  INDEX idx_contact_lead_activity_lead_created (lead_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 INSERT INTO contact_settings (id, recipient_email, relay_url, updated_at, updated_by)
 VALUES (1, 'hello@bugxtract.com', NULL, UTC_TIMESTAMP(), 'migration')
 ON DUPLICATE KEY UPDATE recipient_email = VALUES(recipient_email);

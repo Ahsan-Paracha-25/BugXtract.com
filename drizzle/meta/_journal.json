@@ -50,6 +50,13 @@
       "when": 1793381887500,
       "tag": "0006_wonderful_alice",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1793387033578,
+      "tag": "0007_icy_exiles",
+      "breakpoints": true
     }
   ]
 }

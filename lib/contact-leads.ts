@@ -1,7 +1,7 @@
 import { env } from "./runtime-env";
-import { leadStatuses, type LeadStatus } from "./lead-status";
+import { leadStatuses, leadTypes, type LeadStatus, type LeadType } from "./lead-status";
 
-export { leadStatuses, type LeadStatus } from "./lead-status";
+export { leadStatuses, leadTypes, type LeadStatus, type LeadType } from "./lead-status";
 
 export type ContactLeadInput = {
   name: string;
@@ -19,9 +19,14 @@ export type ContactLeadInput = {
 export type ContactLead = ContactLeadInput & {
   id: string;
   status: LeadStatus;
+  leadType: LeadType;
+  followUpAt: string;
   createdAt: string;
   updatedAt: string;
 };
+
+export type LeadNote = { id: string; leadId: string; note: string; author: string; createdAt: string };
+export type LeadActivity = { id: string; leadId: string; kind: string; detail: string; author: string; createdAt: string };
 
 let schemaPromise: Promise<void> | undefined;
 
@@ -47,7 +52,29 @@ export async function ensureContactLeadStorage() {
       status VARCHAR(32) NOT NULL DEFAULT 'New',
       created_at VARCHAR(40) NOT NULL,
       updated_at VARCHAR(40) NOT NULL
-    )`).run().then(() => undefined).catch(error => {
+    )`).run().then(async () => {
+      await env.DB!.prepare(`CREATE TABLE IF NOT EXISTS contact_lead_metadata (
+        lead_id VARCHAR(64) PRIMARY KEY,
+        lead_type VARCHAR(32) NOT NULL DEFAULT 'Prospect',
+        follow_up_at VARCHAR(40) NOT NULL DEFAULT '',
+        updated_at VARCHAR(40) NOT NULL
+      )`).run();
+      await env.DB!.prepare(`CREATE TABLE IF NOT EXISTS contact_lead_notes (
+        id VARCHAR(64) PRIMARY KEY,
+        lead_id VARCHAR(64) NOT NULL,
+        note TEXT NOT NULL,
+        author VARCHAR(100) NOT NULL,
+        created_at VARCHAR(40) NOT NULL
+      )`).run();
+      await env.DB!.prepare(`CREATE TABLE IF NOT EXISTS contact_lead_activity (
+        id VARCHAR(64) PRIMARY KEY,
+        lead_id VARCHAR(64) NOT NULL,
+        kind VARCHAR(48) NOT NULL,
+        detail VARCHAR(500) NOT NULL,
+        author VARCHAR(100) NOT NULL,
+        created_at VARCHAR(40) NOT NULL
+      )`).run();
+    }).then(() => undefined).catch(error => {
       schemaPromise = undefined;
       throw error;
     });
@@ -65,9 +92,22 @@ export async function createContactLead(input: ContactLeadInput) {
     id, input.name, input.email, input.company, input.whatsapp, input.website,
     input.service, input.plan, input.timeline, input.budget, input.message, "New", now, now,
   ).run();
+  await env.DB!.prepare("INSERT INTO contact_lead_metadata (lead_id, lead_type, follow_up_at, updated_at) VALUES (?, ?, ?, ?)")
+    .bind(id, "Prospect", "", now).run();
+  await addLeadActivity(id, "inquiry_received", "Contact form inquiry received", "System", now);
   return { id, createdAt: now };
+}
+
+export async function addLeadActivity(leadId: string, kind: string, detail: string, author: string, createdAt = new Date().toISOString()) {
+  await ensureContactLeadStorage();
+  await env.DB!.prepare("INSERT INTO contact_lead_activity (id, lead_id, kind, detail, author, created_at) VALUES (?, ?, ?, ?, ?, ?)")
+    .bind(crypto.randomUUID(), leadId, kind, detail.slice(0, 500), author.slice(0, 100), createdAt).run();
 }
 
 export function isLeadStatus(value: unknown): value is LeadStatus {
   return typeof value === "string" && (leadStatuses as readonly string[]).includes(value);
+}
+
+export function isLeadType(value: unknown): value is LeadType {
+  return typeof value === "string" && (leadTypes as readonly string[]).includes(value);
 }

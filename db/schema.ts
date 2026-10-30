@@ -71,3 +71,27 @@ export const contactLeads = sqliteTable("contact_leads", {
   index("idx_contact_leads_created_at").on(table.createdAt),
   index("idx_contact_leads_status_created_at").on(table.status, table.createdAt),
 ]);
+
+export const contactLeadMetadata = sqliteTable("contact_lead_metadata", {
+  leadId: text("lead_id").primaryKey(),
+  leadType: text("lead_type").notNull().default("Prospect"),
+  followUpAt: text("follow_up_at").notNull().default(""),
+  updatedAt: text("updated_at").notNull(),
+});
+
+export const contactLeadNotes = sqliteTable("contact_lead_notes", {
+  id: text("id").primaryKey(),
+  leadId: text("lead_id").notNull(),
+  note: text("note").notNull(),
+  author: text("author").notNull(),
+  createdAt: text("created_at").notNull(),
+}, (table) => [index("idx_contact_lead_notes_lead_created").on(table.leadId, table.createdAt)]);
+
+export const contactLeadActivity = sqliteTable("contact_lead_activity", {
+  id: text("id").primaryKey(),
+  leadId: text("lead_id").notNull(),
+  kind: text("kind").notNull(),
+  detail: text("detail").notNull(),
+  author: text("author").notNull(),
+  createdAt: text("created_at").notNull(),
+}, (table) => [index("idx_contact_lead_activity_lead_created").on(table.leadId, table.createdAt)]);
