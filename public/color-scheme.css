@@ -1,0 +1,29 @@
+:root{color-scheme:light dark}
+.brand .precision-wordmark>span{color:#1769f5}
+
+@media (prefers-color-scheme: dark){
+  body{background:#07182f!important;color:#edf5ff!important}
+  header{background:#06172c!important;border-color:#1b3b59!important}
+  .reference-hero{background:radial-gradient(circle at 80% 15%,#183b7b 0,transparent 35%),linear-gradient(120deg,#07182f,#0a2340)!important;color:#f8fbff!important}
+  .reference-hero h1,.reference-hero p,.reference-hero .hero-footnote,.reference-hero .hero-benefits{color:#e6f2ff!important}
+  .reference-hero h1 .blue-words{color:#5ed7ff!important}
+  #services.reference-services,.products-we-test,.plans,.process,body .coverage,#faq{background:#0b213b!important;color:#edf5ff!important}
+  #services.reference-services h2,.products-we-test h2,.plans h2,.coverage h2,#faq h2,.section-head h2,.founder h2{color:#f4f8ff!important}
+  #services.reference-services p,.products-we-test p,.plans p,.coverage p,#faq p,.section-head p,.founder p,.services-note,.products-footnote{color:#b8cae0!important}
+  .testing-tile,.flow-card,.product-category,.contact-form,.contact-bottom details,.table-scroll{background:#102b49!important;border-color:#294a6d!important;box-shadow:none!important}
+  .testing-tile h3,.flow-card h3,.product-category .category-title,.contact-form h2,.contact-form label,.contact-bottom summary{color:#f1f6ff!important}
+  .testing-tile .service-subtitle,.flow-card p,.product-category .category-count,.contact-form small{color:#b9cce1!important}
+  .product-category li{border-color:#294a6d!important;color:#c8d7e7!important}
+  .product-category:hover,.product-category:focus-visible{background:#143755!important;border-color:#4a9bff!important}
+  .table-scroll{border-color:#294a6d!important}.table-scroll table{color:#edf5ff!important}.table-scroll thead th{background:#163758!important;color:#f4f8ff!important}.table-scroll tbody tr,.table-scroll tbody tr:nth-child(even){background:#102b49!important}.table-scroll tbody tr:hover{background:#163d5c!important}.table-scroll th,.table-scroll td{border-color:#294a6d!important;color:#d7e5f4!important}
+  #retainers{background:linear-gradient(120deg,#07182f,#112c55)!important}.retainer-box{border-color:#375576!important}.retainer-intro{background:#112f51!important}.retainer-row{border-color:#2c4f72!important}.retainer-row strong{color:#f3f7ff!important}
+  .coverage-note{border-color:#42d4ff!important;color:#c9dbeb!important}.test-list div{border-color:#294a6d!important;color:#e5f0fa!important}.test-list span{color:#58d7ff!important}
+  .cta{background:linear-gradient(120deg,#09274a,#122f62)!important}.cta p,.cta .direct-email{color:#c2d5e8!important}.cta .direct-email a{color:#78dcff!important}
+  footer{background:#06172c!important;border-color:#1b3b59!important;color:#d8e8fa!important}.footer-inner p,.footer-links a,.footer-contact{color:#c3d5e8!important}
+  .social-follow-link{background:#102d4c!important;border-color:#315577!important;color:#76dfff!important}
+  .contact-heading,.contact-layout,.contact-bottom{background:transparent!important}.contact-heading p{color:#c3d4e7!important}.back-home{color:#9fbad3!important}.contact-form{color:#edf5ff!important}.contact-form input,.contact-form select,.contact-form textarea{background:#0b213b!important;color:#edf5ff!important;border-color:#365879!important}.contact-form option{background:#0b213b;color:#edf5ff}.form-note,.selected-package-summary,.contact-summary{background:#123252!important;color:#cfe1f3!important}.contact-context{background:linear-gradient(135deg,#0b2747,#133b65)!important}
+  .hero-primary{background:#246bff!important;border-color:#246bff!important}.hero-secondary{border-color:#71caff!important;color:#9cddff!important}.brand .precision-wordmark>span{color:#4dc9ff!important}
+  .trust-metrics{background:#0b213b!important;color:#edf5ff!important}.trust-metrics h2,.trust-metrics-intro h2,.trust-metric-value{color:#f4f8ff!important}.trust-metrics-intro p,.trust-metric-label{color:#bcd0e5!important}.trust-metrics-kicker{background:#143a55!important;color:#86e5d7!important}.trust-metric-card{background:#102d4c!important;border-color:#294e70!important;box-shadow:none!important}.trust-metric-icon{background:#173d60!important;color:#77dfff!important}
+  .pricing-load-status{background:#102b49!important;color:#cfe1f3!important}.automation-note{background:#123654!important;color:#e3f0ff!important}.automation-note strong{color:#f1f7ff!important}.automation-note span{color:#bcd0e5!important}.pricing-notes p{color:#b8cae0!important}
+  .contact-heading .eyebrow,.contact-heading .direct-email strong{color:#b7d7f5!important}.contact-heading .direct-email{color:#d7e7f6!important}
+}

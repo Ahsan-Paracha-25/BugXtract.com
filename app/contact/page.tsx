@@ -2,6 +2,7 @@ import Script from "next/script";
 import contactBody from "../../public/contact-body.html?raw";
 import css from "../../public/contact.css?raw";
 import socialCss from "../../public/social-links.css?raw";
+import colorSchemeCss from "../../public/color-scheme.css?raw";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,7 @@ export default function Contact() {
 
   return <><style dangerouslySetInnerHTML={{ __html: css }} />
     <style dangerouslySetInnerHTML={{ __html: socialCss }} />
+    <style dangerouslySetInnerHTML={{ __html: colorSchemeCss }} />
     <div dangerouslySetInnerHTML={{ __html: bodyWithSocialLinks }} />
     <Script src="/contact.js?v=automatic-contact-email-20261008-1" strategy="afterInteractive" />
   </>;
