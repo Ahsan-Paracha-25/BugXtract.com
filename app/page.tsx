@@ -25,6 +25,7 @@ export default function Home() {
     <Script src="/reviews.js?v=persistent-thumbnails-20261030" strategy="afterInteractive" />
     <Script src="/trust-metrics.js?v=viewport-20261011" strategy="afterInteractive" />
     <Script src="/scroll-animations.js?v=20261011-2" strategy="afterInteractive" />
+    <Script src="/hero-slider.js?v=20261030-2" strategy="afterInteractive" />
     <Script src="/growth-sections.js?v=20261030-1" strategy="afterInteractive" />
   </>;
 }
