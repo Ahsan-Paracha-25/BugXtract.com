@@ -4,6 +4,7 @@ if (form) {
   const planSelect = document.getElementById("plan");
   const message = document.getElementById("message");
   const params = new URLSearchParams(location.search);
+  const emailInput = document.getElementById("email");
   const priceSummary = document.getElementById("selected-package-summary");
   const priceName = document.getElementById("selected-package-name");
   const priceLabel = document.getElementById("selected-package-price-label");
@@ -16,6 +17,20 @@ if (form) {
   const packages = new Map();
   let generatedMessage = "";
   let prepared = "";
+
+  const requestedResource = params.get("request");
+  const requestedEmail = params.get("email");
+  if (requestedEmail && emailInput) emailInput.value = requestedEmail;
+  if (requestedResource === "prelaunch-checklist") {
+    message.value = "Please send me the Pre-Launch QA Checklist.";
+    formStatus.textContent = "Complete the remaining fields and submit your request. We’ll send the checklist to your work email.";
+  } else if (requestedResource === "sample-qa-report") {
+    message.value = "Please send me a sample QA report.";
+    formStatus.textContent = "Complete the remaining fields and submit your request. We’ll send the sample report to your work email.";
+  } else if (requestedResource === "free-qa-call") {
+    message.value = "I would like to request a free 15-minute QA call.";
+    formStatus.textContent = "Complete the remaining fields and submit your request. We’ll contact you to arrange a suitable time.";
+  }
 
   function addOption(value, label) {
     const item = document.createElement("option");

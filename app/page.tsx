@@ -10,16 +10,21 @@ import retainersCss from "../public/retainers.css?raw";
 import customerReviewsCss from "../public/customer-reviews.css?raw";
 import trustMetricsCss from "../public/trust-metrics.css?raw";
 import colorSchemeCss from "../public/color-scheme.css?raw";
+import growthSections from "../public/growth-sections.html?raw";
+import growthSectionsCss from "../public/growth-sections.css?raw";
 
 export const dynamic = "force-dynamic";
 
 export default function Home() {
-  return <><style dangerouslySetInnerHTML={{ __html: css }} /><style dangerouslySetInnerHTML={{ __html: qualityCss }} /><style dangerouslySetInnerHTML={{ __html: serviceCardsCss }} /><style dangerouslySetInnerHTML={{ __html: howItWorksCss }} /><style dangerouslySetInnerHTML={{ __html: productsDialogCss }} /><style dangerouslySetInnerHTML={{ __html: pricingDiscountsCss }} /><style dangerouslySetInnerHTML={{ __html: retainersCss }} /><style dangerouslySetInnerHTML={{ __html: customerReviewsCss }} /><style dangerouslySetInnerHTML={{ __html: trustMetricsCss }} /><style dangerouslySetInnerHTML={{ __html: colorSchemeCss }} />
-    <div dangerouslySetInnerHTML={{ __html: landingBody }} />
+  const bodyWithGrowthSections = landingBody.replace("</main><footer>", `${growthSections}</main><footer>`);
+
+  return <><style dangerouslySetInnerHTML={{ __html: css }} /><style dangerouslySetInnerHTML={{ __html: qualityCss }} /><style dangerouslySetInnerHTML={{ __html: serviceCardsCss }} /><style dangerouslySetInnerHTML={{ __html: howItWorksCss }} /><style dangerouslySetInnerHTML={{ __html: productsDialogCss }} /><style dangerouslySetInnerHTML={{ __html: pricingDiscountsCss }} /><style dangerouslySetInnerHTML={{ __html: retainersCss }} /><style dangerouslySetInnerHTML={{ __html: customerReviewsCss }} /><style dangerouslySetInnerHTML={{ __html: trustMetricsCss }} /><style dangerouslySetInnerHTML={{ __html: colorSchemeCss }} /><style dangerouslySetInnerHTML={{ __html: growthSectionsCss }} />
+    <div dangerouslySetInnerHTML={{ __html: bodyWithGrowthSections }} />
     <Script src="/legacy.js" strategy="afterInteractive" />
     <Script src="/pricing.js?v=live-pricing-20261008" strategy="afterInteractive" />
     <Script src="/reviews.js?v=coverage-placement-20261011" strategy="afterInteractive" />
     <Script src="/trust-metrics.js?v=viewport-20261011" strategy="afterInteractive" />
     <Script src="/scroll-animations.js?v=20261011-2" strategy="afterInteractive" />
+    <Script src="/growth-sections.js?v=20261030-1" strategy="afterInteractive" />
   </>;
 }
