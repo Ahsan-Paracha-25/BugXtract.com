@@ -1,12 +1,13 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import Link from "next/link";
 import { AdminEditor } from "./editor";
 import "./portal.css";
 
 type Status = { configured: boolean; authenticated: boolean; username: string | null };
 
-export function AdminPortal() {
+export function AdminPortal({ view = "content" }: { view?: "content" | "leads" }) {
   const [status, setStatus] = useState<Status | null>(null);
   const [mode, setMode] = useState<"setup" | "login" | "recovery">("login");
   const [busy, setBusy] = useState(false);
@@ -21,7 +22,10 @@ export function AdminPortal() {
     setMode(data.configured ? "login" : "setup");
   }
 
-  useEffect(() => { refreshStatus().catch(() => setError("Could not connect to admin login. Refresh and try again.")); }, []);
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void refreshStatus().catch(() => setError("Could not connect to admin login. Refresh and try again.")); }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   async function submit(event: FormEvent<HTMLFormElement>, endpoint: string, fields: string[]) {
     event.preventDefault(); setBusy(true); setError(""); setNotice("");
@@ -48,7 +52,7 @@ export function AdminPortal() {
     setNotice("You have signed out.");
   }
 
-  if (status?.authenticated) return <AdminEditor onLogout={logout} username={status.username ?? ""} />;
+  if (status?.authenticated) return <AdminEditor onLogout={logout} username={status.username ?? ""} view={view} />;
   if (!status && !error) return <main className="admin-shell"><section className="admin-card"><p className="admin-kicker">BugXtract.com · Admin</p><h1>Checking sign-in…</h1></section></main>;
 
   const setup = mode === "setup" && !status?.configured;
@@ -69,7 +73,7 @@ export function AdminPortal() {
       <button className="admin-button" disabled={busy}>{busy ? "Please wait…" : setup ? "Create admin login" : recovery ? "Reset admin login" : "Sign in"}</button>
     </form>
     {status?.configured && <button className="admin-link-button" onClick={() => { setMode(recovery ? "login" : "recovery"); setError(""); setNotice(""); }}>{recovery ? "Back to sign in" : "Forgot your login? Use recovery code"}</button>}
-    <a className="admin-back" href="/">Back to website</a>
+    <Link className="admin-back" href="/">Back to website</Link>
     <p className="admin-security-note">Admin login is private. Use a unique password with at least 12 characters.</p>
   </section></main>;
 }

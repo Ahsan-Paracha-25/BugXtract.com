@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import Link from "next/link";
 import type { PricingContent, Plan, Retainer } from "../../lib/pricing-defaults";
 import { defaultPricing, defaultTrustMetrics, featureLabels } from "../../lib/pricing-defaults";
 import { ReviewsEditor } from "./reviews-editor";
@@ -53,7 +54,7 @@ function toStoredPricing(data: EditablePricing): PricingContent {
   }) };
 }
 
-export function AdminEditor({ onLogout, username }: { onLogout: () => void; username: string }) {
+export function AdminEditor({ onLogout, username, view = "content" }: { onLogout: () => void; username: string; view?: "content" | "leads" }) {
   const [content, setContent] = useState<EditablePricing>(() => toEditablePricing(defaultPricing));
   const [status, setStatus] = useState("Loading saved plans…");
   const [busy, setBusy] = useState(false);
@@ -84,14 +85,14 @@ export function AdminEditor({ onLogout, username }: { onLogout: () => void; user
     } catch (error) { setAccountStatus(error instanceof Error ? error.message : "Could not update login."); }
     finally { setAccountBusy(false); }
   }
-  return <main className="admin-shell"><header className="admin-head"><div><p className="admin-kicker">BugXtract.com · Secure admin</p><h1>Website content</h1><p>Manage your leads, trust metrics, offers, monthly retainers, and customer reviews.</p></div><div className="admin-head-actions"><span>Signed in as <strong>{username}</strong></span><a className="admin-back" href="/">View website</a><button className="admin-secondary" onClick={onLogout}>Sign out</button></div></header>
+  if (view === "leads") return <main className="admin-shell"><header className="admin-head"><div><p className="admin-kicker">BugXtract.com · Secure admin</p><h1>Lead management</h1><p>Review and manage every inquiry submitted through your Contact Us form.</p></div><div className="admin-head-actions"><span>Signed in as <strong>{username}</strong></span><Link className="admin-back" href="/admin">Website content</Link><Link className="admin-back" href="/">View website</Link><button className="admin-secondary" onClick={onLogout}>Sign out</button></div></header><LeadsEditor /></main>;
+  return <main className="admin-shell"><header className="admin-head"><div><p className="admin-kicker">BugXtract.com · Secure admin</p><h1>Website content</h1><p>Manage your trust metrics, offers, monthly retainers, and customer reviews.</p></div><div className="admin-head-actions"><span>Signed in as <strong>{username}</strong></span><Link className="admin-back" href="/admin/leads">Leads</Link><Link className="admin-back" href="/">View website</Link><button className="admin-secondary" onClick={onLogout}>Sign out</button></div></header>
     <div className="admin-toolbar"><span aria-live="polite">{status}</span><button className="admin-button" onClick={save} disabled={busy}>{busy ? "Saving…" : "Save and publish changes"}</button></div>
-    <LeadsEditor />
     <TrustMetricsEditor metrics={content.trustMetrics ?? defaultTrustMetrics} onChange={trustMetrics => setContent(current => ({ ...current, trustMetrics }))} onSave={save} busy={busy} status={status} />
     <section className="editor-section"><div className="editor-title"><div><h2>Project plans</h2><p>Price, hours, audience, description and included coverage.</p></div><button className="admin-secondary" onClick={() => setContent(c => ({ ...c, plans: [...c.plans, blankPlan(c.plans.length)] }))}>+ Add plan</button></div>
       {content.plans.map((plan, i) => <article className="edit-card" key={plan.id}><div className="edit-card-top"><h3>{plan.name || "Untitled plan"}</h3><button className="remove-button" onClick={() => setContent(c => ({ ...c, plans: c.plans.filter((_, index) => index !== i) }))}>Remove plan</button></div>
         <div className="edit-grid"><label>Plan name<input value={plan.name} onChange={e => updatePlan(i, { name: e.target.value })}/></label><label>Discounted / current price<div className="usd-range"><div className="usd-input"><span aria-hidden="true">$</span><input inputMode="decimal" placeholder="90" value={plan.currentMin} onChange={e => updatePlan(i, { currentMin: e.target.value })}/></div><span className="usd-range-to">to</span><div className="usd-input"><span aria-hidden="true">$</span><input inputMode="decimal" placeholder="150" value={plan.currentMax} onChange={e => updatePlan(i, { currentMax: e.target.value })}/></div></div></label><label>Original price (optional)<div className="usd-range"><div className="usd-input"><span aria-hidden="true">$</span><input inputMode="decimal" placeholder="150" value={plan.originalMin} onChange={e => updatePlan(i, { originalMin: e.target.value })}/></div><span className="usd-range-to">to</span><div className="usd-input"><span aria-hidden="true">$</span><input inputMode="decimal" placeholder="300" value={plan.originalMax} onChange={e => updatePlan(i, { originalMax: e.target.value })}/></div></div><small>Enter amounts only; leave both original fields blank to hide the crossed-out price.</small></label><label>Billing period<input value={plan.billing} onChange={e => updatePlan(i, { billing: e.target.value })}/></label><label>Testing hours<input value={plan.hours} onChange={e => updatePlan(i, { hours: e.target.value })}/></label><label>Best suited for<input value={plan.audience} onChange={e => updatePlan(i, { audience: e.target.value })}/></label><label className="popular-check"><input type="checkbox" checked={plan.popular} onChange={e => updatePlan(i, { popular: e.target.checked })}/> Show “Most Popular” badge</label><label className="wide">Plan description<textarea rows={2} value={plan.description} onChange={e => updatePlan(i, { description: e.target.value })}/></label>
-          <div className="wide feature-editor"><strong>What's included</strong>{featureLabels.map((feature, fi) => <label key={feature}>{feature}<input value={plan.features[fi] ?? ""} onChange={e => { const features = [...plan.features]; features[fi] = e.target.value; updatePlan(i, { features }); }}/></label>)}</div>
+          <div className="wide feature-editor"><strong>What&apos;s included</strong>{featureLabels.map((feature, fi) => <label key={feature}>{feature}<input value={plan.features[fi] ?? ""} onChange={e => { const features = [...plan.features]; features[fi] = e.target.value; updatePlan(i, { features }); }}/></label>)}</div>
         </div></article>)}
     </section>
     <section className="editor-section"><div className="editor-title"><div><h2>Monthly retainers</h2><p>Set reserved QA hours, monthly prices and descriptions.</p></div><button className="admin-secondary" onClick={() => setContent(c => ({ ...c, retainers: [...c.retainers, blankRetainer()] }))}>+ Add retainer</button></div>
