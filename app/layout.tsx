@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 import { TawkChat } from "./tawk-chat";
 
@@ -65,6 +66,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         {children}
+        <Script src="/visitor-analytics.js?v=20261031-1" strategy="afterInteractive" />
         <TawkChat />
       </body>
     </html>

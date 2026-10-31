@@ -7,7 +7,7 @@ import "./portal.css";
 
 type Status = { configured: boolean; authenticated: boolean; username: string | null };
 
-export function AdminPortal({ view = "content" }: { view?: "content" | "leads" | "customers" | "insights" }) {
+export function AdminPortal({ view = "content" }: { view?: "content" | "leads" | "customers" | "insights" | "analytics" }) {
   const [status, setStatus] = useState<Status | null>(null);
   const [mode, setMode] = useState<"setup" | "login" | "recovery">("login");
   const [busy, setBusy] = useState(false);
