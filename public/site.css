@@ -13,6 +13,9 @@
 nav > .btn{background:#1463ff;border-color:#1463ff;color:#fff;box-shadow:0 6px 16px #1463ff3d}
 nav > .btn:hover,nav > .btn:focus-visible{background:#0b4edb;border-color:#0b4edb;color:#fff}
 
+/* Desktop-only fixed navigation; mobile retains its existing layout and behavior. */
+@media(min-width:821px){header{position:fixed;top:0;right:0;left:0;width:100%;z-index:100}header+main{padding-top:86px}}
+
 /* Social links */
 .social-follow{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:18px}.social-follow-label{color:#466278;font-size:12px;font-weight:700;margin-right:3px}.social-follow-link{display:grid;place-items:center;width:34px;height:34px;border:1px solid #c9d9e4;border-radius:50%;color:#0b6c91;background:#fff;transition:transform .2s ease,background .2s ease,color .2s ease}.social-follow-link:hover{background:#087f79;border-color:#087f79;color:#fff;transform:translateY(-2px)}.social-follow-link svg{display:block;width:17px;height:17px;fill:currentColor}.social-follow-cta .social-follow-label{color:#c7dce8}.social-follow-cta .social-follow-link{border-color:#ffffff3d;background:#ffffff12;color:#87f0e2}.social-follow-cta .social-follow-link:hover{background:#87f0e2;border-color:#87f0e2;color:#092540}.footer-navigation{display:flex;flex-direction:column;align-items:flex-end;gap:13px}.footer-social{justify-content:flex-end;margin-top:0}.footer-social .social-follow-link{width:30px;height:30px;font-size:12px}.footer-social .social-follow-link svg{width:15px;height:15px}@media(max-width:700px){.footer-navigation{align-items:flex-start}.footer-social{justify-content:flex-start}.social-follow{gap:7px}}
 

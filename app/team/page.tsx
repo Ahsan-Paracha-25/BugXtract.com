@@ -14,6 +14,7 @@ export default function TeamPage() {
 
   return <>
     <style dangerouslySetInnerHTML={{ __html: teamCss }} />
+    <style dangerouslySetInnerHTML={{ __html: "@media(min-width:821px){.team-header{position:fixed;top:0;right:0;left:0;width:100%;z-index:100}.team-header+main{padding-top:86px}}" }} />
     <style dangerouslySetInnerHTML={{ __html: colorSchemeCss }} />
     <style dangerouslySetInnerHTML={{ __html: brandLockupCss }} />
     <div dangerouslySetInnerHTML={{ __html: page }} />
