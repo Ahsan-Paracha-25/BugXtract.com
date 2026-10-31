@@ -135,3 +135,5 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.visitor-reach{padding:72px 24px;background:linear-gradient(135deg,#062449,#0a4f72 58%,#087d8b);color:#fff}.visitor-reach__content{width:min(1120px,100%);margin:auto}.visitor-reach__eyebrow{margin:0 0 12px;color:#89f3e9;font-size:12px;font-weight:800;letter-spacing:.14em}.visitor-reach h2{max-width:680px;margin:0;color:#fff;font-size:clamp(28px,4vw,48px);line-height:1.06;letter-spacing:-.04em}.visitor-reach__description{margin:15px 0 0;color:#d8f4f5;font-size:16px}.visitor-reach__stats{display:flex;flex-wrap:wrap;gap:14px;margin-top:30px}.visitor-reach__stats article{min-width:180px;padding:17px 20px;border:1px solid #ffffff38;border-radius:14px;background:#ffffff12;backdrop-filter:blur(8px)}.visitor-reach__stats strong{display:block;color:#8ef4dd;font-size:30px;line-height:1}.visitor-reach__stats span{display:block;margin-top:7px;color:#fff;font-size:13px;font-weight:700}@media(max-width:600px){.visitor-reach{padding:52px 20px}.visitor-reach__stats{display:grid;grid-template-columns:1fr}.visitor-reach__stats article{min-width:0}}
