@@ -3,7 +3,7 @@
 import type { FounderProfile } from "../../lib/pricing-defaults";
 import "./founder-editor.css";
 
-export function FounderEditor({ founder, onChange }: { founder: FounderProfile; onChange: (founder: FounderProfile) => void }) {
+export function FounderEditor({ founder, onChange, onSave, busy, status }: { founder: FounderProfile; onChange: (founder: FounderProfile) => void; onSave: () => void; busy: boolean; status: string }) {
   function update(patch: Partial<FounderProfile>) { onChange({ ...founder, ...patch }); }
 
   return <section className="editor-section founder-admin-section">
@@ -41,6 +41,7 @@ export function FounderEditor({ founder, onChange }: { founder: FounderProfile; 
         <label>Verified highlight 2<input maxLength={160} value={founder.proofTwo} onChange={event => update({ proofTwo: event.target.value })} placeholder="Add only a fact you can verify" /></label>
         <label>Verified highlight 3<input maxLength={160} value={founder.proofThree} onChange={event => update({ proofThree: event.target.value })} placeholder="Add only a fact you can verify" /></label>
       </div>
+      <div className="founder-save-row"><button type="button" className="admin-button" onClick={onSave} disabled={busy}>{busy ? "Saving founder profile…" : "Save founder profile"}</button><span role="status">{status}</span></div>
     </article>
   </section>;
 }

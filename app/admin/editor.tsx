@@ -61,6 +61,7 @@ export function AdminEditor({ onLogout, username, view = "content" }: { onLogout
   const [content, setContent] = useState<EditablePricing>(() => toEditablePricing(defaultPricing));
   const [status, setStatus] = useState("Loading saved plans…");
   const [busy, setBusy] = useState(false);
+  const [founderStatus, setFounderStatus] = useState("Save the founder profile to publish it, then we will verify the public value.");
   const [accountStatus, setAccountStatus] = useState("");
   const [accountBusy, setAccountBusy] = useState(false);
   useEffect(() => { fetch("/api/pricing", { cache: "no-store" }).then(async r => { if (!r.ok) throw new Error("Pricing data could not be loaded."); return r.json() as Promise<PricingContent>; }).then(data => { setContent(toEditablePricing(data)); setStatus("Your current live prices and plan details are loaded."); }).catch(() => setStatus("Showing the current website defaults. Saving will use the protected online database.")); }, []);
@@ -74,6 +75,29 @@ export function AdminEditor({ onLogout, username, view = "content" }: { onLogout
     setBusy(true); setStatus("Saving changes…");
     try { const response = await fetch("/api/pricing", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(toStoredPricing(content)) }); const result = await response.json() as { error?: string; savedAt?: string }; if (!response.ok) throw new Error(result.error || "Save failed."); setStatus(`Saved successfully at ${new Date(result.savedAt ?? Date.now()).toLocaleString()}. Public pricing is updated.`); }
     catch (error) { setStatus(error instanceof Error ? error.message : "Could not save. Please try again."); }
+    finally { setBusy(false); }
+  }
+  async function saveFounder() {
+    const founder = content.founderProfile ?? defaultFounderProfile;
+    if (founder.visible && (!founder.name.trim() || !founder.message.trim())) {
+      setFounderStatus("Add a founder name and message before showing this profile on the website.");
+      return;
+    }
+    setBusy(true); setFounderStatus("Saving founder profile and checking the live value…");
+    try {
+      const response = await fetch("/api/pricing", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(toStoredPricing(content)) });
+      const result = await response.json() as { error?: string };
+      if (!response.ok) throw new Error(result.error || "The founder profile could not be saved.");
+      const verification = await fetch(`/api/pricing?verify-founder=${Date.now()}`, { cache: "no-store", credentials: "same-origin" });
+      const liveContent = await verification.json() as PricingContent | { error?: string };
+      if (!verification.ok || !("founderProfile" in liveContent)) throw new Error((liveContent as { error?: string }).error || "The saved founder profile could not be verified.");
+      const liveFounder = (liveContent as PricingContent).founderProfile;
+      if (!liveFounder || liveFounder.name !== founder.name || liveFounder.visible !== founder.visible) {
+        throw new Error("The founder profile was not verified. Your previous public value is still live, so nothing has been claimed as published.");
+      }
+      setContent(toEditablePricing(liveContent as PricingContent));
+      setFounderStatus(`Published and verified: ${liveFounder.name || "Founder profile"} is now the live public value.`);
+    } catch (error) { setFounderStatus(error instanceof Error ? error.message : "The founder profile could not be saved. Please try again."); }
     finally { setBusy(false); }
   }
   async function updateLogin(event: FormEvent<HTMLFormElement>) {
@@ -94,7 +118,7 @@ export function AdminEditor({ onLogout, username, view = "content" }: { onLogout
   return <main className="admin-shell"><header className="admin-head"><div><p className="admin-kicker">BugXtract.com · Secure admin</p><h1>Website content</h1><p>Manage your founder profile, trust metrics, offers, monthly retainers, and customer reviews.</p></div><div className="admin-head-actions"><span>Signed in as <strong>{username}</strong></span><Link className="admin-back" href="/admin/insights">Insights</Link><Link className="admin-back" href="/admin/leads">Leads</Link><Link className="admin-back" href="/admin/customers">Customers</Link><Link className="admin-back" href="/">View website</Link><button className="admin-secondary" onClick={onLogout}>Sign out</button></div></header>
     <div className="admin-toolbar"><span aria-live="polite">{status}</span><button className="admin-button" onClick={save} disabled={busy}>{busy ? "Saving…" : "Save and publish changes"}</button></div>
     <TrustMetricsEditor metrics={content.trustMetrics ?? defaultTrustMetrics} onChange={trustMetrics => setContent(current => ({ ...current, trustMetrics }))} onSave={save} busy={busy} status={status} />
-    <FounderEditor founder={content.founderProfile ?? defaultFounderProfile} onChange={founderProfile => setContent(current => ({ ...current, founderProfile }))} />
+    <FounderEditor founder={content.founderProfile ?? defaultFounderProfile} onChange={founderProfile => setContent(current => ({ ...current, founderProfile }))} onSave={() => void saveFounder()} busy={busy} status={founderStatus} />
     <section className="editor-section"><div className="editor-title"><div><h2>Project plans</h2><p>Price, hours, audience, description and included coverage.</p></div><button className="admin-secondary" onClick={() => setContent(c => ({ ...c, plans: [...c.plans, blankPlan(c.plans.length)] }))}>+ Add plan</button></div>
       {content.plans.map((plan, i) => <article className="edit-card" key={plan.id}><div className="edit-card-top"><h3>{plan.name || "Untitled plan"}</h3><button className="remove-button" onClick={() => setContent(c => ({ ...c, plans: c.plans.filter((_, index) => index !== i) }))}>Remove plan</button></div>
         <div className="edit-grid"><label>Plan name<input value={plan.name} onChange={e => updatePlan(i, { name: e.target.value })}/></label><label>Discounted / current price<div className="usd-range"><div className="usd-input"><span aria-hidden="true">$</span><input inputMode="decimal" placeholder="90" value={plan.currentMin} onChange={e => updatePlan(i, { currentMin: e.target.value })}/></div><span className="usd-range-to">to</span><div className="usd-input"><span aria-hidden="true">$</span><input inputMode="decimal" placeholder="150" value={plan.currentMax} onChange={e => updatePlan(i, { currentMax: e.target.value })}/></div></div></label><label>Original price (optional)<div className="usd-range"><div className="usd-input"><span aria-hidden="true">$</span><input inputMode="decimal" placeholder="150" value={plan.originalMin} onChange={e => updatePlan(i, { originalMin: e.target.value })}/></div><span className="usd-range-to">to</span><div className="usd-input"><span aria-hidden="true">$</span><input inputMode="decimal" placeholder="300" value={plan.originalMax} onChange={e => updatePlan(i, { originalMax: e.target.value })}/></div></div><small>Enter amounts only; leave both original fields blank to hide the crossed-out price.</small></label><label>Billing period<input value={plan.billing} onChange={e => updatePlan(i, { billing: e.target.value })}/></label><label>Testing hours<input value={plan.hours} onChange={e => updatePlan(i, { hours: e.target.value })}/></label><label>Best suited for<input value={plan.audience} onChange={e => updatePlan(i, { audience: e.target.value })}/></label><label className="popular-check"><input type="checkbox" checked={plan.popular} onChange={e => updatePlan(i, { popular: e.target.checked })}/> Show “Most Popular” badge</label><label className="wide">Plan description<textarea rows={2} value={plan.description} onChange={e => updatePlan(i, { description: e.target.value })}/></label>
