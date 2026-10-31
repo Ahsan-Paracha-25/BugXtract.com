@@ -39,6 +39,18 @@ export type FounderProfile = {
   focusThree: string;
   ctaLabel: string;
   ctaUrl: string;
+  signatureName: string;
+  signatureRole: string;
+  linkedInUrl: string;
+  homepageVisible: boolean;
+  homepageTitle: string;
+  homepageMessage: string;
+  quote: string;
+  quoteAttribution: string;
+  proofOne: string;
+  proofTwo: string;
+  proofThree: string;
+  videoUrl: string;
 };
 
 export const defaultFounderProfile: FounderProfile = {
@@ -53,6 +65,18 @@ export const defaultFounderProfile: FounderProfile = {
   focusThree: "",
   ctaLabel: "Discuss your QA needs",
   ctaUrl: "/contact/?request=founder-message",
+  signatureName: "",
+  signatureRole: "",
+  linkedInUrl: "",
+  homepageVisible: false,
+  homepageTitle: "A practical QA partner for safer releases.",
+  homepageMessage: "Meet the person behind BugXtract’s approach to thoughtful, evidence-led software testing.",
+  quote: "",
+  quoteAttribution: "",
+  proofOne: "",
+  proofTwo: "",
+  proofThree: "",
+  videoUrl: "",
 };
 
 export const defaultTrustMetrics: TrustMetric[] = [

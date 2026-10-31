@@ -19,13 +19,20 @@ function validContent(value: unknown): value is typeof defaultPricing {
   if (content.founderProfile !== undefined) {
     const founder = content.founderProfile as Record<string, unknown>;
     const safeFounderText = (field: unknown, max: number) => typeof field === "string" && field.length <= max;
-    if (!founder || typeof founder.visible !== "boolean" ||
+    if (!founder || typeof founder.visible !== "boolean" || typeof founder.homepageVisible !== "boolean" ||
       !safeFounderText(founder.name, 120) || !safeFounderText(founder.role, 140) || !safeFounderText(founder.imageUrl, 1000) ||
       !safeFounderText(founder.introduction, 240) || !safeFounderText(founder.message, 1800) ||
       !safeFounderText(founder.focusOne, 120) || !safeFounderText(founder.focusTwo, 120) || !safeFounderText(founder.focusThree, 120) ||
-      !safeFounderText(founder.ctaLabel, 80) || !safeFounderText(founder.ctaUrl, 500)) return false;
+      !safeFounderText(founder.ctaLabel, 80) || !safeFounderText(founder.ctaUrl, 500) ||
+      !safeFounderText(founder.signatureName, 120) || !safeFounderText(founder.signatureRole, 140) || !safeFounderText(founder.linkedInUrl, 1000) ||
+      !safeFounderText(founder.homepageTitle, 180) || !safeFounderText(founder.homepageMessage, 500) ||
+      !safeFounderText(founder.quote, 500) || !safeFounderText(founder.quoteAttribution, 180) ||
+      !safeFounderText(founder.proofOne, 160) || !safeFounderText(founder.proofTwo, 160) || !safeFounderText(founder.proofThree, 160) ||
+      !safeFounderText(founder.videoUrl, 1000)) return false;
     if (founder.imageUrl && !/^https:\/\//i.test(String(founder.imageUrl))) return false;
     if (founder.ctaUrl && !/^(?:\/|https:\/\/)/i.test(String(founder.ctaUrl))) return false;
+    if (founder.linkedInUrl && !/^https:\/\/www\.linkedin\.com\//i.test(String(founder.linkedInUrl))) return false;
+    if (founder.videoUrl && !/^https:\/\//i.test(String(founder.videoUrl))) return false;
   }
   const safeText = (v: unknown) => typeof v === "string" && v.length <= 500;
   return content.plans.every((plan: unknown) => {
@@ -46,7 +53,7 @@ async function getStoredContent() {
   if (!row) return defaultPricing;
   try {
     const content = JSON.parse(row.content);
-    return { ...content, trustMetrics: Array.isArray(content.trustMetrics) ? content.trustMetrics : defaultTrustMetrics, founderProfile: content.founderProfile ?? defaultFounderProfile };
+    return { ...content, trustMetrics: Array.isArray(content.trustMetrics) ? content.trustMetrics : defaultTrustMetrics, founderProfile: { ...defaultFounderProfile, ...(content.founderProfile as Record<string, unknown> | undefined) } };
   } catch { return defaultPricing; }
 }
 

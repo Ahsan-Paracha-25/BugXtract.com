@@ -34,7 +34,7 @@ function formatPriceRange(min: string, max: string) {
 }
 
 function toEditablePricing(data: PricingContent): EditablePricing {
-  return { ...data, trustMetrics: data.trustMetrics ?? defaultTrustMetrics, founderProfile: data.founderProfile ?? defaultFounderProfile, plans: data.plans.map(plan => {
+  return { ...data, trustMetrics: data.trustMetrics ?? defaultTrustMetrics, founderProfile: { ...defaultFounderProfile, ...data.founderProfile }, plans: data.plans.map(plan => {
     const current = splitPriceRange(plan.price);
     const original = splitPriceRange(plan.originalPrice ?? "");
     return {
