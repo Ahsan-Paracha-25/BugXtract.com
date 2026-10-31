@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { TawkChat } from "./tawk-chat";
 
 export const metadata: Metadata = {
   title: "BugXtract.com — Human insight. Software confidence.",
@@ -34,7 +35,10 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        {children}
+        <TawkChat />
+      </body>
     </html>
   );
 }
