@@ -14,6 +14,7 @@ export type ContactLeadInput = {
   timeline: string;
   budget: string;
   message: string;
+  source?: string;
 };
 
 export type ContactLead = ContactLeadInput & {
@@ -101,7 +102,8 @@ export async function createContactLead(input: ContactLeadInput) {
   ).run();
   await env.DB!.prepare("INSERT INTO contact_lead_metadata (lead_id, lead_type, follow_up_at, updated_at) VALUES (?, ?, ?, ?)")
     .bind(id, "Prospect", "", now).run();
-  await addLeadActivity(id, "inquiry_received", "Contact form inquiry received", "System", now);
+  const source = input.source?.trim().slice(0, 200);
+  await addLeadActivity(id, "inquiry_received", source ? `Contact form inquiry received · Source: ${source}` : "Contact form inquiry received", "System", now);
   return { id, createdAt: now };
 }
 

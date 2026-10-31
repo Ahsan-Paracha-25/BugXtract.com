@@ -14,9 +14,71 @@ if (form) {
   const formStatus = document.getElementById("form-status");
   const downloadButton = document.getElementById("download-inquiry");
   const preview = document.getElementById("inquiry-preview");
+  const submitButton = form.querySelector('button[type="submit"]');
+  const messageCount = document.getElementById("message-count");
+  const startedAt = document.getElementById("form_started_at");
+  const sourceInput = document.getElementById("inquiry_source");
   const packages = new Map();
   let generatedMessage = "";
   let prepared = "";
+
+  if (startedAt) startedAt.value = String(Date.now());
+  if (sourceInput) {
+    const landingSource = params.get("source") || params.get("utm_source");
+    let referrerPath = "";
+    try {
+      const referrer = document.referrer ? new URL(document.referrer) : null;
+      if (referrer && referrer.origin === location.origin) referrerPath = referrer.pathname + referrer.search;
+    } catch { /* A missing or malformed referrer simply means a direct visit. */ }
+    sourceInput.value = (landingSource || referrerPath || "Direct contact page").slice(0, 200);
+  }
+
+  function setFieldError(id, messageText) {
+    const field = document.getElementById(id);
+    const error = document.getElementById(id + "-error");
+    if (!field || !error) return;
+    error.textContent = messageText || "";
+    field.setAttribute("aria-invalid", messageText ? "true" : "false");
+  }
+
+  function validateInquiry() {
+    const values = new FormData(form);
+    const name = String(values.get("name") || "").trim();
+    const email = String(values.get("email") || "").trim();
+    const whatsapp = String(values.get("whatsapp") || "").trim();
+    const website = String(values.get("website") || "").trim();
+    const serviceValue = String(values.get("service") || "").trim();
+    const planValue = String(values.get("plan") || "").trim();
+    const details = String(values.get("message") || "").trim();
+    const consent = values.get("contact_consent") === "on";
+    const errors = [];
+    const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    const phoneValid = !whatsapp || /^[+()\-\s\d]{7,30}$/.test(whatsapp) && /\d/.test(whatsapp);
+    let websiteValid = true;
+    if (website) { try { const url = new URL(website); websiteValid = url.protocol === "https:" || url.protocol === "http:"; } catch { websiteValid = false; } }
+    setFieldError("name", name ? "" : "Enter your full name.");
+    setFieldError("email", emailValid ? "" : "Enter a valid work email address.");
+    setFieldError("whatsapp", phoneValid ? "" : "Use a valid number with country code.");
+    setFieldError("website", websiteValid ? "" : "Enter a valid http:// or https:// URL.");
+    setFieldError("service", serviceValue ? "" : "Choose a testing service.");
+    setFieldError("plan", planValue ? "" : "Choose a package or select Help me choose.");
+    setFieldError("message", details.length >= 25 ? "" : "Add at least 25 characters about your project.");
+    const consentInput = document.getElementById("contact-consent");
+    const consentError = document.getElementById("consent-error");
+    if (consentInput && consentError) {
+      consentError.textContent = consent ? "" : "Please confirm that we may contact you about this inquiry.";
+      consentInput.setAttribute("aria-invalid", consent ? "false" : "true");
+    }
+    if (!name) errors.push("name"); if (!emailValid) errors.push("email"); if (!phoneValid) errors.push("whatsapp");
+    if (!websiteValid) errors.push("website"); if (!serviceValue) errors.push("service"); if (!planValue) errors.push("plan");
+    if (details.length < 25) errors.push("message"); if (!consent) errors.push("consent");
+    return errors.length === 0;
+  }
+
+  function updateMessageCount() {
+    if (messageCount) messageCount.textContent = String(message.value.length) + " / 5000";
+  }
+  updateMessageCount();
 
   const requestedResource = params.get("request");
   const requestedEmail = params.get("email");
@@ -95,12 +157,14 @@ if (form) {
       if (updateMessage && (!message.value.trim() || message.value === generatedMessage)) {
         message.value = nextMessage;
         generatedMessage = nextMessage;
+        updateMessageCount();
       }
     } else {
       priceSummary.hidden = true;
       if (updateMessage && message.value === generatedMessage) {
         message.value = "";
         generatedMessage = "";
+        updateMessageCount();
       }
     }
   }
@@ -154,10 +218,21 @@ if (form) {
   planSelect.addEventListener("change", function() { updateSelectedPackage(true); });
   form.addEventListener("input", function(event) {
     if (event.target === message) generatedMessage = "";
+    if (event.target === message) updateMessageCount();
+    if (event.target && event.target.id) setFieldError(event.target.id, "");
     preview.hidden = true;
     downloadButton.hidden = true;
     formStatus.textContent = "";
     prepared = "";
+  });
+  form.addEventListener("change", function(event) {
+    if (event.target && event.target.id === "contact-consent") {
+      const consentError = document.getElementById("consent-error");
+      if (event.target.checked) {
+        event.target.setAttribute("aria-invalid", "false");
+        if (consentError) consentError.textContent = "";
+      }
+    }
   });
 
   fetch("/api/pricing", { cache: "no-store" })
@@ -175,6 +250,12 @@ if (form) {
 
   form.addEventListener("submit", async function(event) {
     event.preventDefault();
+    if (!validateInquiry()) {
+      formStatus.textContent = "Please correct the highlighted fields before sending your inquiry.";
+      const firstInvalid = form.querySelector('[aria-invalid="true"]');
+      if (firstInvalid && typeof firstInvalid.focus === "function") firstInvalid.focus();
+      return;
+    }
     const data = new FormData(form);
     const selectedPackage = packages.get(planSelect.value);
     const inquiry = {
@@ -189,6 +270,9 @@ if (form) {
       budget: String(data.get("budget") || "").trim(),
       message: String(data.get("message") || "").trim(),
       fax_number: String(data.get("fax_number") || "").trim(),
+      contact_consent: data.get("contact_consent") === "on",
+      form_started_at: String(data.get("form_started_at") || ""),
+      source: String(data.get("inquiry_source") || "Direct contact page").trim(),
     };
     prepared = "BugXtract.com — Project Inquiry\n\n" +
       [["Name", inquiry.name], ["Work email", inquiry.email], ["Company", inquiry.company], ["WhatsApp number", inquiry.whatsapp], ["Product URL", inquiry.website], ["Service", inquiry.service], ["Selected package / current price", inquiry.plan], ["Target release", inquiry.timeline], ["Budget", inquiry.budget], ["Project details", inquiry.message]]
@@ -197,9 +281,9 @@ if (form) {
     preview.textContent = prepared;
     preview.hidden = false;
     downloadButton.hidden = false;
-    const submitButton = form.querySelector('button[type="submit"]');
     submitButton.disabled = true;
-    formStatus.textContent = "Sending your inquiry…";
+    submitButton.textContent = "Sending inquiry…";
+    formStatus.textContent = "Saving and sending your inquiry…";
     try {
       const response = await fetch("/api/contact", {
         method: "POST",
@@ -223,7 +307,7 @@ if (form) {
         return;
       }
       if (!response.ok) throw new Error(result.error || "Your inquiry could not be sent. Please try again.");
-      formStatus.textContent = "Thank you. Your inquiry has been submitted to our team. We’ll follow up using your email address.";
+      formStatus.textContent = "Thank you — your QA inquiry has been received. We usually reply within one business day." + (result.confirmationSent ? " A confirmation email is on its way." : "");
       preview.hidden = true;
       downloadButton.hidden = true;
       form.reset();
@@ -234,6 +318,7 @@ if (form) {
       formStatus.textContent = error instanceof Error ? error.message : "Your inquiry could not be sent. Your details are still here—please try again.";
     } finally {
       submitButton.disabled = false;
+      submitButton.textContent = "Send inquiry";
     }
   });
 

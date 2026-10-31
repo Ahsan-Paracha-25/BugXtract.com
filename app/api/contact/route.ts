@@ -17,6 +17,9 @@ type Inquiry = {
   budget?: unknown;
   message?: unknown;
   fax_number?: unknown;
+  contact_consent?: unknown;
+  form_started_at?: unknown;
+  source?: unknown;
 };
 
 const validText = (value: unknown, max: number, required = false): value is string =>
@@ -24,6 +27,10 @@ const validText = (value: unknown, max: number, required = false): value is stri
 
 function validEmail(value: unknown): value is string {
   return typeof value === "string" && value.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+}
+
+function validPhone(value: unknown): value is string {
+  return typeof value === "string" && value.length <= 30 && (!value.trim() || (/^[+()\-\s\d]{7,30}$/.test(value.trim()) && /\d/.test(value)));
 }
 
 async function withinRateLimit(request: Request) {
@@ -50,12 +57,17 @@ export async function POST(request: Request) {
 
   // Quietly accept the hidden honeypot so automated spam does not get a delivery signal.
   if (typeof payload.fax_number === "string" && payload.fax_number.trim()) return Response.json({ ok: true });
+  const startedAt = typeof payload.form_started_at === "string" ? Number(payload.form_started_at) : 0;
+  if (Number.isFinite(startedAt) && startedAt > 0 && Date.now() - startedAt < 1200) {
+    return Response.json({ error: "Please take a moment to review your inquiry before sending." }, { status: 429 });
+  }
 
   if (!validText(payload.name, 100, true) || !validEmail(payload.email) ||
-      !validText(payload.company, 150) || !validText(payload.whatsapp, 30) ||
+      !validText(payload.company, 150) || !validPhone(payload.whatsapp) ||
       !validText(payload.website, 500) || !validText(payload.service, 120, true) ||
       !validText(payload.plan, 300, true) || !validText(payload.timeline, 40) ||
-      !validText(payload.budget, 80) || !validText(payload.message, 5000, true)) {
+      !validText(payload.budget, 80) || !validText(payload.message, 5000, true) || payload.message.trim().length < 25 ||
+      payload.contact_consent !== true || !(payload.source === undefined || validText(payload.source, 200))) {
     return Response.json({ error: "Please check your name, work email, service, package, and project details." }, { status: 400 });
   }
   if (payload.website.trim()) {
@@ -87,13 +99,13 @@ export async function POST(request: Request) {
     await createContactLead({
       name: payload.name.trim(), email: payload.email.trim(), company: payload.company.trim(), whatsapp: payload.whatsapp.trim(),
       website: payload.website.trim(), service: payload.service.trim(), plan: payload.plan.trim(), timeline: payload.timeline.trim(),
-      budget: payload.budget.trim(), message: payload.message.trim(),
+      budget: payload.budget.trim(), message: payload.message.trim(), source: typeof payload.source === "string" ? payload.source.trim() : "Unattributed",
     });
     const rows: Array<[string, string]> = [
       ["Name", payload.name.trim()], ["Work email", payload.email.trim()], ["Company", payload.company.trim() || "Not specified"],
       ["WhatsApp number", payload.whatsapp.trim() || "Not specified"], ["Product / website URL", payload.website.trim() || "Not specified"],
       ["Testing service", payload.service.trim()], ["Preferred package and current price", payload.plan.trim()],
-      ["Target release", payload.timeline.trim() || "Not specified"], ["Project budget", payload.budget.trim() || "Not specified"],
+      ["Target release", payload.timeline.trim() || "Not specified"], ["Project budget", payload.budget.trim() || "Not specified"], ["Inquiry source", typeof payload.source === "string" ? payload.source.trim() || "Unattributed" : "Unattributed"],
       ["Project details", payload.message.trim()],
     ];
     const text = ["BugXtract.com — New Project Inquiry", "", ...rows.flatMap(([label, value]) => [`${label}:`, value, ""])].join("\n");
@@ -113,7 +125,17 @@ export async function POST(request: Request) {
         subject: `BugXtract.com — New project inquiry from ${subjectName}`,
         text,
       });
-      return Response.json({ ok: true });
+      let confirmationSent = false;
+      try {
+        await transporter.sendMail({
+          from: `BugXtract.com <${smtpUser}>`,
+          to: payload.email.trim(),
+          subject: "We received your BugXtract QA inquiry",
+          text: `Hi ${payload.name.trim()},\n\nThanks for contacting BugXtract. We received your project inquiry and usually reply within one business day.\n\nRegards,\nBugXtract.com`,
+        });
+        confirmationSent = true;
+      } catch (confirmationError) { console.error("Could not send inquiry confirmation", confirmationError); }
+      return Response.json({ ok: true, confirmationSent });
     }
     const response = usingResend
       ? await fetch("https://api.resend.com/emails", {
@@ -151,7 +173,25 @@ export async function POST(request: Request) {
         return Response.json({ error: "Your inquiry could not be emailed right now. Please try again shortly." }, { status: 502 });
       }
     }
-    return Response.json({ ok: true });
+    let confirmationSent = false;
+    if (usingResend) {
+      try {
+        const confirmation = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${resendApiKey}` },
+          body: JSON.stringify({
+            from: `BugXtract.com <${resendFromEmail}>`,
+            to: [payload.email.trim()],
+            subject: "We received your BugXtract QA inquiry",
+            text: `Hi ${payload.name.trim()},\n\nThanks for contacting BugXtract. We received your project inquiry and usually reply within one business day.\n\nRegards,\nBugXtract.com`,
+          }),
+          signal: AbortSignal.timeout(15000),
+        });
+        confirmationSent = confirmation.ok;
+        if (!confirmation.ok) console.error("Inquiry confirmation was not accepted by email provider", confirmation.status);
+      } catch (confirmationError) { console.error("Could not send inquiry confirmation", confirmationError); }
+    }
+    return Response.json({ ok: true, confirmationSent });
   } catch (error) {
     console.error("Could not deliver project inquiry", error);
     return Response.json({ error: "Your inquiry could not be emailed right now. Your details are still here—please try again shortly." }, { status: 503 });
