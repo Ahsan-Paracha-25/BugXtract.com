@@ -1,7 +1,7 @@
 (function () {
   var section = document.getElementById("founder-profile");
   function text(id, value) { var element = document.getElementById(id); if (element) element.textContent = value || ""; }
-  function validImage(value) { try { return new URL(value).protocol === "https:"; } catch (_) { return false; } }
+  function validImage(value) { return /^\/api\/founder\/images\/founder-[0-9a-f-]{36}\.(?:jpe?g|png|webp)$/i.test(value || "") || (function () { try { return new URL(value).protocol === "https:"; } catch (_) { return false; } }()); }
   function validHttps(value) { try { return new URL(value).protocol === "https:"; } catch (_) { return false; } }
   function toggle(id, show) { var element = document.getElementById(id); if (element) element.hidden = !show; return element; }
   fetch("/api/pricing", { cache: "no-store" }).then(function (response) { if (!response.ok) throw new Error("Founder profile unavailable"); return response.json(); }).then(function (content) {

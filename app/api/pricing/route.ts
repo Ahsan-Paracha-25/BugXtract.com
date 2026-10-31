@@ -29,7 +29,7 @@ function validContent(value: unknown): value is typeof defaultPricing {
       !safeFounderText(founder.quote, 500) || !safeFounderText(founder.quoteAttribution, 180) ||
       !safeFounderText(founder.proofOne, 160) || !safeFounderText(founder.proofTwo, 160) || !safeFounderText(founder.proofThree, 160) ||
       !safeFounderText(founder.videoUrl, 1000)) return false;
-    if (founder.imageUrl && !/^https:\/\//i.test(String(founder.imageUrl))) return false;
+    if (founder.imageUrl && !/^(?:https:\/\/|\/api\/founder\/images\/founder-[0-9a-f-]{36}\.(?:jpe?g|png|webp))$/i.test(String(founder.imageUrl))) return false;
     if (founder.ctaUrl && !/^(?:\/|https:\/\/)/i.test(String(founder.ctaUrl))) return false;
     if (founder.linkedInUrl && !/^https:\/\/www\.linkedin\.com\//i.test(String(founder.linkedInUrl))) return false;
     if (founder.videoUrl && !/^https:\/\//i.test(String(founder.videoUrl))) return false;

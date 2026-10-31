@@ -1,10 +1,28 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element -- This is a local admin-only preview for an uploaded image URL. */
+import { useState } from "react";
 import type { FounderProfile } from "../../lib/pricing-defaults";
 import "./founder-editor.css";
 
 export function FounderEditor({ founder, onChange, onSave, busy, status }: { founder: FounderProfile; onChange: (founder: FounderProfile) => void; onSave: () => void; busy: boolean; status: string }) {
+  const [uploading, setUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState("");
   function update(patch: Partial<FounderProfile>) { onChange({ ...founder, ...patch }); }
+  async function uploadImage(file: File | null) {
+    if (!file) return;
+    if (file.size > 4 * 1024 * 1024) { setUploadStatus("Choose an image smaller than 4 MB."); return; }
+    setUploading(true); setUploadStatus("Uploading founder image…");
+    try {
+      const data = new FormData(); data.append("image", file);
+      const response = await fetch("/api/admin/founder/images", { method: "POST", credentials: "same-origin", body: data });
+      const result = await response.json() as { imageUrl?: string; error?: string };
+      if (!response.ok || !result.imageUrl) throw new Error(result.error || "The founder image could not be uploaded.");
+      update({ imageUrl: result.imageUrl });
+      setUploadStatus("Image uploaded. Click Save founder profile to publish it.");
+    } catch (error) { setUploadStatus(error instanceof Error ? error.message : "The founder image could not be uploaded."); }
+    finally { setUploading(false); }
+  }
 
   return <section className="editor-section founder-admin-section">
     <div className="editor-title"><div><h2>Founder profile</h2><p>Show an optional founder message on the public Our Team page.</p></div></div>
@@ -14,7 +32,8 @@ export function FounderEditor({ founder, onChange, onSave, busy, status }: { fou
       <div className="edit-grid founder-fields">
         <label>Founder name<input maxLength={120} value={founder.name} onChange={event => update({ name: event.target.value })} placeholder="Your full name" /></label>
         <label>Role / title<input maxLength={140} value={founder.role} onChange={event => update({ role: event.target.value })} placeholder="Founder, BugXtract.com" /></label>
-        <label className="wide">Founder photo URL <span>(optional)</span><input type="url" maxLength={1000} value={founder.imageUrl} onChange={event => update({ imageUrl: event.target.value })} placeholder="https://…" /><small>Use a public HTTPS image link. A square professional headshot works best.</small></label>
+        <div className="wide founder-image-field"><label htmlFor="founder-photo-upload">Founder photo <span>(optional)</span></label><div className="founder-image-upload"><div className="founder-image-preview">{founder.imageUrl ? <img src={founder.imageUrl} alt="Founder profile preview" /> : <span>Photo<br />preview</span>}</div><div><input id="founder-photo-upload" type="file" accept="image/jpeg,image/png,image/webp" disabled={uploading || busy} onChange={event => { void uploadImage(event.target.files?.[0] ?? null); event.currentTarget.value = ""; }} /><small>Choose a JPEG, PNG, or WebP image up to 4 MB. A square headshot works best.</small>{uploadStatus && <span className="founder-upload-status" role="status">{uploadStatus}</span>}</div></div></div>
+        <label className="wide">Or use a photo URL <span>(optional)</span><input type="url" maxLength={1000} value={founder.imageUrl} onChange={event => update({ imageUrl: event.target.value })} placeholder="https://…" /><small>Only use this when you prefer an existing public HTTPS image.</small></label>
         <label className="wide">Short introduction<input maxLength={240} value={founder.introduction} onChange={event => update({ introduction: event.target.value })} placeholder="A brief one-line introduction visitors see first." /></label>
         <label className="wide">Founder message<textarea rows={5} maxLength={1800} value={founder.message} onChange={event => update({ message: event.target.value })} placeholder="Explain your mission, the QA services you provide, and what customers can expect." /></label>
         <label>Focus point 1<input maxLength={120} value={founder.focusOne} onChange={event => update({ focusOne: event.target.value })} placeholder="Example: Practical release confidence" /></label>
