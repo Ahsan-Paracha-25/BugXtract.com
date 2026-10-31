@@ -20,7 +20,10 @@ export const dynamic = "force-dynamic";
 export default function Home() {
   const logoVersion = "brand-20261030-2";
   const fullBrandLockup = '<span class="brand-lockup"><span class="precision-wordmark">BugXtract<span>.com</span></span><span class="brand-tagline">Test Deeper. Launch Safer.</span></span>';
-  const versionedLandingBody = landingBody.replaceAll("bugxtract-logo.svg", `bugxtract-logo.svg?v=${logoVersion}`).replaceAll('<span class="precision-wordmark">BugXtract<span>.com</span></span>', fullBrandLockup);
+  const versionedLandingBody = landingBody
+    .replaceAll("bugxtract-logo.svg", `bugxtract-logo.svg?v=${logoVersion}`)
+    .replaceAll('<span class="precision-wordmark">BugXtract<span>.com</span></span>', fullBrandLockup)
+    .replaceAll('<a href="/products">Products</a><a href="contact/">Contact Us</a>', '<a href="/products">Products</a><a href="/team">Our Team</a><a href="contact/">Contact Us</a>');
   const versionedGrowthSections = growthSections.replaceAll("/bugxtract-logo.svg", `/bugxtract-logo.svg?v=${logoVersion}`);
   const bodyWithGrowthSections = versionedLandingBody.replace("</main><footer>", `${versionedGrowthSections}</main><footer>`);
 
