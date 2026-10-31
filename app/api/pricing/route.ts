@@ -1,10 +1,10 @@
 import { env } from "@/lib/runtime-env";
-import { defaultPricing, defaultTrustMetrics } from "../../../lib/pricing-defaults";
+import { defaultFounderProfile, defaultPricing, defaultTrustMetrics } from "../../../lib/pricing-defaults";
 import { getAdminUsername, sameOriginRequest } from "../../../lib/admin-auth";
 
 function validContent(value: unknown): value is typeof defaultPricing {
   if (!value || typeof value !== "object") return false;
-  const content = value as { plans?: unknown; retainers?: unknown; trustMetrics?: unknown };
+  const content = value as { plans?: unknown; retainers?: unknown; trustMetrics?: unknown; founderProfile?: unknown };
   if (!Array.isArray(content.plans) || !Array.isArray(content.retainers)) return false;
   if (content.plans.length > 12 || content.retainers.length > 12) return false;
   if (content.trustMetrics !== undefined) {
@@ -16,14 +16,28 @@ function validContent(value: unknown): value is typeof defaultPricing {
       typeof metric.label === "string" && metric.label.length > 0 && metric.label.length <= 80 &&
       ["users", "document", "stars", "lightning"].includes(String(metric.icon)) && typeof metric.visible === "boolean")) return false;
   }
+  if (content.founderProfile !== undefined) {
+    const founder = content.founderProfile as Record<string, unknown>;
+    const safeFounderText = (field: unknown, max: number) => typeof field === "string" && field.length <= max;
+    if (!founder || typeof founder.visible !== "boolean" ||
+      !safeFounderText(founder.name, 120) || !safeFounderText(founder.role, 140) || !safeFounderText(founder.imageUrl, 1000) ||
+      !safeFounderText(founder.introduction, 240) || !safeFounderText(founder.message, 1800) ||
+      !safeFounderText(founder.focusOne, 120) || !safeFounderText(founder.focusTwo, 120) || !safeFounderText(founder.focusThree, 120) ||
+      !safeFounderText(founder.ctaLabel, 80) || !safeFounderText(founder.ctaUrl, 500)) return false;
+    if (founder.imageUrl && !/^https:\/\//i.test(String(founder.imageUrl))) return false;
+    if (founder.ctaUrl && !/^(?:\/|https:\/\/)/i.test(String(founder.ctaUrl))) return false;
+  }
   const safeText = (v: unknown) => typeof v === "string" && v.length <= 500;
-  return content.plans.every((plan: any) =>
-    plan && [plan.id, plan.name, plan.price, plan.billing, plan.audience, plan.hours, plan.description].every(safeText) &&
-    (plan.originalPrice === undefined || safeText(plan.originalPrice)) &&
-    typeof plan.popular === "boolean" && Array.isArray(plan.features) && plan.features.length <= 20 && plan.features.every(safeText)
-  ) && content.retainers.every((retainer: any) =>
-    retainer && [retainer.id, retainer.name, retainer.hours, retainer.price, retainer.description].every(safeText)
-  );
+  return content.plans.every((plan: unknown) => {
+    const item = plan as Record<string, unknown> | null;
+    return item && [item.id, item.name, item.price, item.billing, item.audience, item.hours, item.description].every(safeText) &&
+      (item.originalPrice === undefined || safeText(item.originalPrice)) &&
+      typeof item.popular === "boolean" && Array.isArray(item.features) && item.features.length <= 20 && item.features.every(safeText);
+  }
+  ) && content.retainers.every((retainer: unknown) => {
+    const item = retainer as Record<string, unknown> | null;
+    return item && [item.id, item.name, item.hours, item.price, item.description].every(safeText);
+  });
 }
 
 async function getStoredContent() {
@@ -32,7 +46,7 @@ async function getStoredContent() {
   if (!row) return defaultPricing;
   try {
     const content = JSON.parse(row.content);
-    return { ...content, trustMetrics: Array.isArray(content.trustMetrics) ? content.trustMetrics : defaultTrustMetrics };
+    return { ...content, trustMetrics: Array.isArray(content.trustMetrics) ? content.trustMetrics : defaultTrustMetrics, founderProfile: content.founderProfile ?? defaultFounderProfile };
   } catch { return defaultPricing; }
 }
 

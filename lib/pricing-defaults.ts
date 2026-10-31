@@ -27,6 +27,34 @@ export type TrustMetric = {
   visible: boolean;
 };
 
+export type FounderProfile = {
+  visible: boolean;
+  name: string;
+  role: string;
+  imageUrl: string;
+  introduction: string;
+  message: string;
+  focusOne: string;
+  focusTwo: string;
+  focusThree: string;
+  ctaLabel: string;
+  ctaUrl: string;
+};
+
+export const defaultFounderProfile: FounderProfile = {
+  visible: false,
+  name: "",
+  role: "Founder, BugXtract.com",
+  imageUrl: "",
+  introduction: "",
+  message: "",
+  focusOne: "",
+  focusTwo: "",
+  focusThree: "",
+  ctaLabel: "Discuss your QA needs",
+  ctaUrl: "/contact/?request=founder-message",
+};
+
 export const defaultTrustMetrics: TrustMetric[] = [
   { id: "happy-customers", value: "50+", label: "Happy Customers", icon: "users", visible: true },
   { id: "projects-delivered", value: "100+", label: "Projects Delivered", icon: "document", visible: true },
@@ -38,10 +66,12 @@ export type PricingContent = {
   plans: Plan[];
   retainers: Retainer[];
   trustMetrics?: TrustMetric[];
+  founderProfile?: FounderProfile;
 };
 
 export const defaultPricing: PricingContent = {
   trustMetrics: defaultTrustMetrics,
+  founderProfile: defaultFounderProfile,
   plans: [
     {
       id: "free", name: "Free QA Trial", price: "$0", billing: "One-time evaluation",
