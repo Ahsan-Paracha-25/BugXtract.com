@@ -22,7 +22,14 @@
       if (cta) { cta.href = founder.ctaUrl || "/contact/?request=founder-message"; cta.firstChild.nodeValue = (founder.ctaLabel || "Discuss your QA needs") + " "; }
       var photo = document.getElementById("founder-profile-photo");
       var image = document.getElementById("founder-profile-image");
-      if (photo && image && validImage(founder.imageUrl)) { image.src = founder.imageUrl; image.alt = founder.name + ", " + (founder.role || "Founder"); photo.hidden = false; }
+      var shell = section.querySelector(".team-founder-shell");
+      function useNoPhotoLayout() { if (shell) shell.classList.add("team-founder--without-photo"); if (photo) photo.hidden = true; }
+      if (photo && image && validImage(founder.imageUrl)) {
+        image.alt = founder.name + ", " + (founder.role || "Founder");
+        image.onload = function () { if (shell) shell.classList.remove("team-founder--without-photo"); photo.hidden = false; };
+        image.onerror = useNoPhotoLayout;
+        image.src = founder.imageUrl;
+      } else useNoPhotoLayout();
       var signature = toggle("founder-profile-signature", Boolean(founder.signatureName || founder.signatureRole));
       if (signature) { text("founder-profile-signature-name", founder.signatureName || founder.name); text("founder-profile-signature-role", founder.signatureRole || founder.role); }
       var quote = toggle("founder-profile-quote", Boolean(founder.quote));
