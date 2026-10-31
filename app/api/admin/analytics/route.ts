@@ -7,6 +7,7 @@ export const dynamic = "force-dynamic";
 
 type CountRow = { label: string; views: number; visitors: number };
 type DailyRow = { day: string; views: number; visitors: number };
+type DemandRow = { label: string; inquiries: number };
 
 export async function GET(request: Request) {
   if (!(await getAdminUsername(request))) return Response.json({ error: "Please sign in to the admin panel." }, { status: 401 });
@@ -17,7 +18,7 @@ export async function GET(request: Request) {
     const today = now.toISOString().slice(0, 10);
     const since = new Date(now.getTime() - 29 * 86400000).toISOString().slice(0, 10);
     const previousSince = new Date(now.getTime() - 59 * 86400000).toISOString().slice(0, 10);
-    const [todayRows, monthRows, previousRows, countries, pages, sources, devices, themes, daily, settings, inquiriesToday, inquiriesMonth, inquiriesPrevious] = await Promise.all([
+    const [todayRows, monthRows, previousRows, countries, pages, sources, devices, themes, daily, settings, inquiriesToday, inquiriesMonth, inquiriesPrevious, services, packages, leadStatuses] = await Promise.all([
       env.DB!.prepare("SELECT COUNT(*) AS views, COUNT(DISTINCT visitor_id) AS visitors FROM visitor_events WHERE activity_date = ?").bind(today).first<{ views: number; visitors: number }>(),
       env.DB!.prepare("SELECT COUNT(*) AS views, COUNT(DISTINCT visitor_id) AS visitors FROM visitor_events WHERE activity_date >= ?").bind(since).first<{ views: number; visitors: number }>(),
       env.DB!.prepare("SELECT COUNT(*) AS views, COUNT(DISTINCT visitor_id) AS visitors FROM visitor_events WHERE activity_date >= ? AND activity_date < ?").bind(previousSince, since).first<{ views: number; visitors: number }>(),
@@ -31,6 +32,9 @@ export async function GET(request: Request) {
       env.DB!.prepare("SELECT COUNT(*) AS inquiries FROM contact_leads WHERE created_at >= ? AND created_at < ?").bind(`${today}T00:00:00.000Z`, `${today}T23:59:59.999Z`).first<{ inquiries: number }>(),
       env.DB!.prepare("SELECT COUNT(*) AS inquiries FROM contact_leads WHERE created_at >= ?").bind(`${since}T00:00:00.000Z`).first<{ inquiries: number }>(),
       env.DB!.prepare("SELECT COUNT(*) AS inquiries FROM contact_leads WHERE created_at >= ? AND created_at < ?").bind(`${previousSince}T00:00:00.000Z`, `${since}T00:00:00.000Z`).first<{ inquiries: number }>(),
+      env.DB!.prepare("SELECT service AS label, COUNT(*) AS inquiries FROM contact_leads WHERE created_at >= ? AND service <> '' GROUP BY service ORDER BY inquiries DESC, service ASC LIMIT 8").bind(`${since}T00:00:00.000Z`).all<DemandRow>(),
+      env.DB!.prepare("SELECT plan AS label, COUNT(*) AS inquiries FROM contact_leads WHERE created_at >= ? AND plan <> '' GROUP BY plan ORDER BY inquiries DESC, plan ASC LIMIT 8").bind(`${since}T00:00:00.000Z`).all<DemandRow>(),
+      env.DB!.prepare("SELECT status AS label, COUNT(*) AS inquiries FROM contact_leads WHERE created_at >= ? GROUP BY status ORDER BY inquiries DESC, status ASC").bind(`${since}T00:00:00.000Z`).all<DemandRow>(),
     ]);
     return Response.json({
       today: todayRows ?? { views: 0, visitors: 0 }, month: monthRows ?? { views: 0, visitors: 0 },
@@ -42,6 +46,7 @@ export async function GET(request: Request) {
         visitorsPrevious30Days: Number(previousRows?.visitors ?? 0),
         inquiriesPrevious30Days: Number(inquiriesPrevious?.inquiries ?? 0),
       },
+      inquiryDemand: { services: services.results, packages: packages.results, statuses: leadStatuses.results },
       privacy: "Anonymous aggregate analytics only. No names, emails, or raw IP addresses are recorded.",
     }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
