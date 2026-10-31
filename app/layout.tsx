@@ -2,15 +2,38 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { TawkChat } from "./tawk-chat";
 
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "BugXtract",
+  alternateName: "BugXtract.com",
+  url: "https://bugxtract.com",
+  logo: "https://bugxtract.com/bugxtract-logo-512.png",
+  description: "Manual-first software QA for web, mobile, desktop, and APIs.",
+  email: "hello@bugxtract.com",
+  sameAs: [
+    "https://www.facebook.com/profile.php?id=61595187271380",
+    "https://www.youtube.com/@BugXtract",
+    "https://www.instagram.com/bugxtract",
+    "https://www.tiktok.com/@bugxtract.com",
+    "https://www.linkedin.com/company/bugxtract-com/posts/",
+  ],
+};
+
 export const metadata: Metadata = {
+  metadataBase: new URL("https://bugxtract.com"),
   title: "BugXtract.com — Human insight. Software confidence.",
   description: "Manual-first software QA for web, mobile, desktop, and APIs.",
   other: {
     "codex-preview": "development",
   },
   icons: {
-    icon: "/favicon.svg?v=brand-20261030-2",
-    shortcut: "/favicon.svg?v=brand-20261030-2",
+    icon: [
+      { url: "/bugxtract-logo-512.png", type: "image/png", sizes: "512x512" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/bugxtract-logo-512.png",
+    apple: "/bugxtract-logo-512.png",
   },
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#f6f9ff" },
@@ -26,6 +49,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
         <script
           dangerouslySetInnerHTML={{
             __html: `if (performance.getEntriesByType("navigation")[0]?.type === "reload") {
