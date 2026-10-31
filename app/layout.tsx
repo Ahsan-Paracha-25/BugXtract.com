@@ -29,10 +29,11 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
+      { url: "/favicon-48.png", type: "image/png", sizes: "48x48" },
       { url: "/bugxtract-logo-512.png", type: "image/png", sizes: "512x512" },
       { url: "/favicon.svg", type: "image/svg+xml" },
     ],
-    shortcut: "/bugxtract-logo-512.png",
+    shortcut: "/favicon-48.png",
     apple: "/bugxtract-logo-512.png",
   },
   themeColor: [
