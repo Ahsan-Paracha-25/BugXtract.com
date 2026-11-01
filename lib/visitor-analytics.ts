@@ -8,6 +8,8 @@ export type VisitorEvent = {
   theme: "Light" | "Dark";
 };
 
+export type VisitorPresence = Pick<VisitorEvent, "visitorId" | "path" | "device" | "theme">;
+
 let schemaPromise: Promise<void> | undefined;
 
 /** Stores anonymous, aggregate-ready events only; no IP address or contact data. */
@@ -31,6 +33,14 @@ export async function ensureVisitorAnalyticsStorage() {
         public_metrics_enabled TINYINT NOT NULL DEFAULT 0,
         updated_at VARCHAR(40) NOT NULL
       )`).run(),
+      env.DB.prepare(`CREATE TABLE IF NOT EXISTS visitor_presence (
+        visitor_id VARCHAR(64) PRIMARY KEY,
+        last_seen VARCHAR(40) NOT NULL,
+        country_code VARCHAR(8) NOT NULL DEFAULT 'XX',
+        current_path VARCHAR(240) NOT NULL,
+        device_type VARCHAR(16) NOT NULL DEFAULT 'Other',
+        color_theme VARCHAR(16) NOT NULL DEFAULT 'Light'
+      )`).run(),
     ]).then(() => undefined).catch(error => { schemaPromise = undefined; throw error; });
   }
   await schemaPromise;
@@ -46,4 +56,13 @@ export async function recordVisitorEvent(event: VisitorEvent, request: Request) 
   const now = new Date();
   await env.DB!.prepare("INSERT INTO visitor_events (id, visitor_id, visited_at, activity_date, country_code, page_path, traffic_source, device_type, color_theme) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
     .bind(crypto.randomUUID(), event.visitorId, now.toISOString(), now.toISOString().slice(0, 10), countryCodeFor(request), event.path, event.source, event.device, event.theme).run();
+}
+
+/** Keeps a short-lived, anonymous presence record for the private live dashboard. */
+export async function recordVisitorPresence(presence: VisitorPresence, request: Request) {
+  await ensureVisitorAnalyticsStorage();
+  const now = new Date().toISOString();
+  await env.DB!.prepare("DELETE FROM visitor_presence WHERE visitor_id = ?").bind(presence.visitorId).run();
+  await env.DB!.prepare("INSERT INTO visitor_presence (visitor_id, last_seen, country_code, current_path, device_type, color_theme) VALUES (?, ?, ?, ?, ?, ?)")
+    .bind(presence.visitorId, now, countryCodeFor(request), presence.path, presence.device, presence.theme).run();
 }
