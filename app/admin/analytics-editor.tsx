@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import "./analytics-editor.css";
 import "./analytics-live.css";
 
@@ -51,7 +51,12 @@ export function AnalyticsEditor() {
   const [data, setData] = useState<Analytics | null>(null);
   const [message, setMessage] = useState("Loading visitor analytics…");
   const [visibilityBusy, setVisibilityBusy] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const refreshInProgress = useRef(false);
   async function load() {
+    if (refreshInProgress.current) return;
+    refreshInProgress.current = true;
+    setRefreshing(true);
     setMessage("Loading visitor analytics…");
     try {
       const response = await fetch("/api/admin/analytics", { cache: "no-store", credentials: "same-origin" });
@@ -59,6 +64,7 @@ export function AnalyticsEditor() {
       if (!response.ok) throw new Error(result.error || "Visitor analytics could not be loaded.");
       setData(result); setMessage("Visitor analytics updated.");
     } catch (error) { setMessage(error instanceof Error ? error.message : "Visitor analytics could not be loaded."); }
+    finally { refreshInProgress.current = false; setRefreshing(false); }
   }
   useEffect(() => { const timer = window.setTimeout(() => void load(), 0); return () => window.clearTimeout(timer); }, []);
   useEffect(() => { const timer = window.setInterval(() => { if (document.visibilityState === "visible") void load(); }, 30000); return () => window.clearInterval(timer); }, []);
@@ -92,7 +98,7 @@ export function AnalyticsEditor() {
   const previousRate = data ? percentage(data.conversion.inquiriesPrevious30Days, data.conversion.visitorsPrevious30Days) : "—";
   return (
     <section className="editor-section analytics-section">
-      <div className="editor-title"><div><h2>Visitor analytics</h2><p>Private, anonymous website activity. Public reach stays off until you enable it below.</p></div><div className="analytics-actions"><button className="admin-secondary" onClick={downloadReport} disabled={!data}>Download CSV</button><button className="admin-secondary" onClick={() => void load()}>Refresh analytics</button></div></div>
+      <div className="editor-title"><div><h2>Visitor analytics</h2><p>Private, anonymous website activity. Public reach stays off until you enable it below.</p></div><div className="analytics-actions"><button className="admin-secondary" onClick={downloadReport} disabled={!data || refreshing}>Download CSV</button><button className="admin-secondary" onClick={() => void load()} disabled={refreshing} aria-busy={refreshing}>{refreshing ? "Refreshing…" : "Refresh analytics"}</button></div></div>
       <p className="lead-status" role="status">{message}</p>
       <div className="analytics-cards">{cards.map(([label, value]) => <article key={String(label)}><span>{label}</span><strong>{value}</strong></article>)}</div>
       {data && <>
