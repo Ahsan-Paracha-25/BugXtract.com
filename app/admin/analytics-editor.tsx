@@ -7,7 +7,8 @@ import "./analytics-live.css";
 type CountRow = { label: string; views: number; visitors: number };
 type DemandRow = { label: string; inquiries: number };
 type LiveRow = { label: string; visitors: number };
-type Analytics = { today: { views: number; visitors: number }; month: { views: number; visitors: number }; conversion: { inquiriesToday: number; inquiries30Days: number; visitorsPrevious30Days: number; inquiriesPrevious30Days: number }; inquiryDemand: { services: DemandRow[]; packages: DemandRow[]; statuses: DemandRow[] }; live: { active: number; pages: LiveRow[]; devices: LiveRow[]; windowMinutes: number }; countries: CountRow[]; pages: CountRow[]; sources: CountRow[]; devices: CountRow[]; themes: CountRow[]; daily: { day: string; views: number; visitors: number }[]; publicMetricsEnabled: boolean; privacy: string; error?: string };
+type EngagementRow = { label: string; visitors: number; seconds: number };
+type Analytics = { today: { views: number; visitors: number }; month: { views: number; visitors: number }; conversion: { inquiriesToday: number; inquiries30Days: number; visitorsPrevious30Days: number; inquiriesPrevious30Days: number }; inquiryDemand: { services: DemandRow[]; packages: DemandRow[]; statuses: DemandRow[] }; live: { active: number; pages: LiveRow[]; devices: LiveRow[]; windowMinutes: number }; sectionActivity: { live: LiveRow[]; engagement: EngagementRow[] }; countries: CountRow[]; pages: CountRow[]; sources: CountRow[]; devices: CountRow[]; themes: CountRow[]; daily: { day: string; views: number; visitors: number }[]; publicMetricsEnabled: boolean; privacy: string; error?: string };
 
 function countryName(code: string) {
   if (code === "XX") return "Country unavailable";
@@ -25,6 +26,16 @@ function DemandTable({ title, rows }: { title: string; rows: DemandRow[] }) {
 
 function LiveTable({ title, rows }: { title: string; rows: LiveRow[] }) {
   return <section className="analytics-live-table"><h3>{title}</h3>{rows.length ? <div>{rows.map(row => <article key={row.label}><span>{row.label === "/" ? "Homepage" : row.label}</span><small>{row.visitors} active</small></article>)}</div> : <p>No active visitors in the last 5 minutes.</p>}</section>;
+}
+
+function formatDuration(seconds: number) {
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60); const remaining = seconds % 60;
+  return remaining ? `${minutes}m ${remaining}s` : `${minutes}m`;
+}
+
+function EngagementTable({ rows }: { rows: EngagementRow[] }) {
+  return <section className="analytics-engagement-table"><h3>Most engaged sections · 30 days</h3>{rows.length ? <div>{rows.map(row => <article key={row.label}><span>{row.label}</span><small><b>{formatDuration(row.seconds)}</b> · {row.visitors} {row.visitors === 1 ? "visitor" : "visitors"}</small></article>)}</div> : <p>Engagement data will appear after visitors browse the updated website.</p>}</section>;
 }
 
 function percentage(inquiries: number, visitors: number) {
@@ -70,6 +81,7 @@ export function AnalyticsEditor() {
     const addVisitorRows = (title: string, values: CountRow[], country = false) => { rows.push([], [title, "Visitors", "Views"]); values.forEach(item => rows.push([country ? countryName(item.label) : item.label, item.visitors, item.views])); };
     addDemand("Requested services", data.inquiryDemand.services); addDemand("Preferred packages", data.inquiryDemand.packages); addDemand("Lead status", data.inquiryDemand.statuses);
     addVisitorRows("Visitors by country", data.countries, true); addVisitorRows("Most visited pages", data.pages); addVisitorRows("Traffic sources", data.sources); addVisitorRows("Devices", data.devices); addVisitorRows("Theme preference", data.themes);
+    rows.push([], ["Section engagement - 30 days", "Visitors", "Estimated engagement"]); data.sectionActivity.engagement.forEach(item => rows.push([item.label, item.visitors, formatDuration(item.seconds)]));
     const blob = new Blob([`\uFEFF${rows.map(row => row.map(csvCell).join(",")).join("\n")}`], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob); const link = document.createElement("a");
     link.href = url; link.download = `bugxtract-visitor-analytics-${new Date().toISOString().slice(0, 10)}.csv`; document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
@@ -84,7 +96,8 @@ export function AnalyticsEditor() {
       <p className="lead-status" role="status">{message}</p>
       <div className="analytics-cards">{cards.map(([label, value]) => <article key={String(label)}><span>{label}</span><strong>{value}</strong></article>)}</div>
       {data && <>
-        <section className="analytics-live"><div><p className="analytics-live-kicker"><span /> Live visitor activity</p><h3>{data.live.active} active {data.live.active === 1 ? "visitor" : "visitors"} now</h3><p>Anonymous visitors seen in the last {data.live.windowMinutes} minutes. This refreshes automatically while this page is open.</p></div><div className="analytics-live-grid"><LiveTable title="Current pages" rows={data.live.pages} /><LiveTable title="Devices now" rows={data.live.devices} /></div></section>
+        <section className="analytics-live"><div><p className="analytics-live-kicker"><span /> Live visitor activity</p><h3>{data.live.active} active {data.live.active === 1 ? "visitor" : "visitors"} now</h3><p>Anonymous visitors seen in the last {data.live.windowMinutes} minutes. This refreshes automatically while this page is open.</p></div><div className="analytics-live-grid analytics-live-grid-three"><LiveTable title="Current pages" rows={data.live.pages} /><LiveTable title="Current sections" rows={data.sectionActivity.live} /><LiveTable title="Devices now" rows={data.live.devices} /></div></section>
+        <section className="analytics-engagement"><div><p className="analytics-live-kicker"><span /> Engagement time</p><h3>Where visitors spend their attention</h3><p>Estimated visible time is recorded in coarse 30-second intervals only while a page is open and visible.</p></div><EngagementTable rows={data.sectionActivity.engagement} /></section>
         <section className="analytics-conversion"><div><h3>Visitor-to-inquiry performance</h3><p>This compares anonymous website visitors with Contact Us submissions. It helps you measure whether your website is turning interest into inquiries.</p></div><div className="analytics-conversion-stats"><article><span>Current 30 days</span><strong>{percentage(data.conversion.inquiries30Days, data.month.visitors)}</strong></article><article><span>Previous 30 days</span><strong>{previousRate}</strong></article></div></section>
         <section className="analytics-demand-section"><h3>What prospects are asking for</h3><p>Contact form demand from the last 30 days, so you can focus your offers and follow-ups.</p><div className="analytics-demand-grid"><DemandTable title="Requested services" rows={data.inquiryDemand.services} /><DemandTable title="Preferred packages" rows={data.inquiryDemand.packages} /><DemandTable title="Lead status" rows={data.inquiryDemand.statuses} /></div></section>
         <section className="analytics-public-control"><div><h3>Public visitor reach</h3><p>When enabled, the homepage can show only the total visitors and countries from the last 30 days. Individual visitor data remains private.</p></div><label className="analytics-toggle"><input type="checkbox" checked={data.publicMetricsEnabled} disabled={visibilityBusy} onChange={event => void setPublicVisibility(event.target.checked)} /><span>{data.publicMetricsEnabled ? "Shown on homepage" : "Keep private"}</span></label></section>

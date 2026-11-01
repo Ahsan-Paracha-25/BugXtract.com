@@ -68,6 +68,7 @@ export default function RootLayout({
         {children}
         <Script src="/visitor-analytics.js?v=20261031-1" strategy="afterInteractive" />
         <Script src="/visitor-presence.js?v=20261101-1" strategy="afterInteractive" />
+        <Script src="/visitor-section-activity.js?v=20261101-1" strategy="afterInteractive" />
         <Script src="/visitor-analytics-public.js?v=20261031-1" strategy="afterInteractive" />
         <TawkChat />
       </body>
