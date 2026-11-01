@@ -35,8 +35,14 @@ export async function PUT(request: Request) {
     const current = await env.DB!.prepare("SELECT m.lead_type AS leadType, p.engagement_status AS engagementStatus, p.started_at AS startedAt, p.delivery_notes AS deliveryNotes FROM contact_leads l INNER JOIN contact_lead_metadata m ON m.lead_id = l.id LEFT JOIN customer_profiles p ON p.lead_id = l.id WHERE l.id = ?").bind(payload.id).first<{ leadType: string; engagementStatus: string | null; startedAt: string | null; deliveryNotes: string | null }>();
     if (!current || (current.leadType !== "One-time Customer" && current.leadType !== "Retainer Customer")) return Response.json({ error: "This lead is not marked as a customer." }, { status: 404 });
     const now = new Date().toISOString();
-    await env.DB!.prepare("INSERT INTO customer_profiles (lead_id, engagement_status, started_at, delivery_notes, updated_at) VALUES (?, ?, ?, ?, ?) ON CONFLICT(lead_id) DO UPDATE SET engagement_status = excluded.engagement_status, started_at = excluded.started_at, delivery_notes = excluded.delivery_notes, updated_at = excluded.updated_at")
-      .bind(payload.id, payload.engagementStatus, payload.startedAt, String(payload.deliveryNotes).trim(), now).run();
+    const profile = await env.DB!.prepare("SELECT lead_id FROM customer_profiles WHERE lead_id = ?").bind(payload.id).first<{ leadId: string }>();
+    if (profile) {
+      await env.DB!.prepare("UPDATE customer_profiles SET engagement_status = ?, started_at = ?, delivery_notes = ?, updated_at = ? WHERE lead_id = ?")
+        .bind(payload.engagementStatus, payload.startedAt, String(payload.deliveryNotes).trim(), now, payload.id).run();
+    } else {
+      await env.DB!.prepare("INSERT INTO customer_profiles (lead_id, engagement_status, started_at, delivery_notes, updated_at) VALUES (?, ?, ?, ?, ?)")
+        .bind(payload.id, payload.engagementStatus, payload.startedAt, String(payload.deliveryNotes).trim(), now).run();
+    }
     const events: string[] = [];
     if (payload.engagementStatus !== (current.engagementStatus || "Active")) events.push(`Customer engagement changed to ${payload.engagementStatus}`);
     if (payload.startedAt !== (current.startedAt || "")) events.push(payload.startedAt ? `Customer start date set for ${payload.startedAt}` : "Customer start date cleared");

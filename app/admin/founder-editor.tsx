@@ -2,6 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element -- This is a local admin-only preview for an uploaded image URL. */
 import { useState } from "react";
+import { parseAdminResponse } from "./response";
 import type { FounderProfile } from "../../lib/pricing-defaults";
 import "./founder-editor.css";
 
@@ -16,7 +17,7 @@ export function FounderEditor({ founder, onChange, onSave, busy, status }: { fou
     try {
       const data = new FormData(); data.append("image", file);
       const response = await fetch("/api/admin/founder/images", { method: "POST", credentials: "same-origin", body: data });
-      const result = await response.json() as { imageUrl?: string; error?: string };
+      const result = await parseAdminResponse<{ imageUrl?: string; error?: string }>(response);
       if (!response.ok || !result.imageUrl) throw new Error(result.error || "The founder image could not be uploaded.");
       update({ imageUrl: result.imageUrl });
       setUploadStatus("Image uploaded. Click Save founder profile to publish it.");

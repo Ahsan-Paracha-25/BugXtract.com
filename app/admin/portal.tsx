@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 const Link = ({ className, href, children }: { className?: string; href: string; children: string }) => <a className={className} href={href} onClick={event => { event.preventDefault(); window.location.assign(href); }}>{children}</a>;
 import { AdminEditor } from "./editor";
+import { parseAdminResponse } from "./response";
 import "./portal.css";
 
 type Status = { configured: boolean; authenticated: boolean; username: string | null };
@@ -16,8 +17,8 @@ export function AdminPortal({ view = "content" }: { view?: "content" | "leads" |
 
   async function refreshStatus() {
     const response = await fetch("/api/admin/auth/status", { cache: "no-store", credentials: "same-origin" });
-    if (!response.ok) throw new Error("Admin login is temporarily unavailable.");
-    const data = await response.json() as Status;
+    const data = await parseAdminResponse<Status & { error?: string }>(response);
+    if (!response.ok) throw new Error(data.error || "Admin login is temporarily unavailable.");
     setStatus(data);
     setMode(data.configured ? "login" : "setup");
   }
@@ -36,7 +37,7 @@ export function AdminPortal({ view = "content" }: { view?: "content" | "leads" |
     delete body.confirmPassword;
     try {
       const response = await fetch(endpoint, { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-      const result = await response.json() as { error?: string };
+      const result = await parseAdminResponse<{ error?: string }>(response);
       if (!response.ok) throw new Error(result.error || "Request failed.");
       if (endpoint.endsWith("/login")) setNotice("Signed in successfully.");
       if (endpoint.endsWith("/setup")) setNotice("Admin username and password are set.");

@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { parseAdminResponse } from "./response";
 
 type ContactSettings = { recipientEmail: string; relayUrl: string; senderConfigured: boolean; deliveryProvider?: string };
 
@@ -14,12 +15,12 @@ export function ContactSettingsEditor() {
   useEffect(() => {
     fetch("/api/admin/contact-settings", { cache: "no-store", credentials: "same-origin" })
       .then(async response => {
-        const data = await response.json() as ContactSettings & { error?: string };
+        const data = await parseAdminResponse<ContactSettings & { error?: string }>(response);
         if (!response.ok) throw new Error(data.error || "Contact settings could not be loaded.");
         setRecipientEmail(data.recipientEmail);
         setRelayUrl(data.relayUrl || "");
         setSenderConfigured(data.senderConfigured);
-        setStatus(data.senderConfigured ? "Gmail relay URL is saved. Submit a test inquiry to verify delivery." : "Receiving email is saved; connect your Gmail delivery below.");
+        setStatus(data.senderConfigured ? `${data.deliveryProvider || "Email"} delivery is configured. Submit a test inquiry to verify delivery.` : "Receiving email is saved; connect an email delivery service below.");
       })
       .catch(error => setStatus(error instanceof Error ? error.message : "Contact settings could not be loaded."));
   }, []);
@@ -33,11 +34,11 @@ export function ContactSettingsEditor() {
         method: "PUT", credentials: "same-origin", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ recipientEmail, relayUrl }),
       });
-      const result = await response.json() as ContactSettings & { error?: string };
+      const result = await parseAdminResponse<ContactSettings & { error?: string }>(response);
       if (!response.ok) throw new Error(result.error || "Email settings could not be saved.");
       setRelayUrl(result.relayUrl || "");
       setSenderConfigured(result.senderConfigured);
-      setStatus(result.senderConfigured ? "Saved. Submit a test inquiry to verify delivery through your Gmail account." : "Receiving email saved. Complete Gmail setup below to activate automatic delivery.");
+      setStatus(result.senderConfigured ? `Saved. Submit a test inquiry to verify delivery through ${result.deliveryProvider || "your email service"}.` : "Receiving email saved. Complete an email delivery setup below to activate automatic delivery.");
     } catch (error) { setStatus(error instanceof Error ? error.message : "Email settings could not be saved."); }
     finally { setBusy(false); }
   }

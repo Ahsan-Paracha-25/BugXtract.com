@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { parseAdminResponse } from "./response";
 import "./analytics-editor.css";
 import "./analytics-live.css";
 
@@ -60,7 +61,7 @@ export function AnalyticsEditor() {
     setMessage("Loading visitor analytics…");
     try {
       const response = await fetch("/api/admin/analytics", { cache: "no-store", credentials: "same-origin" });
-      const result = await response.json() as Analytics;
+      const result = await parseAdminResponse<Analytics>(response);
       if (!response.ok) throw new Error(result.error || "Visitor analytics could not be loaded.");
       setData(result); setMessage("Visitor analytics updated.");
     } catch (error) { setMessage(error instanceof Error ? error.message : "Visitor analytics could not be loaded."); }
@@ -73,7 +74,7 @@ export function AnalyticsEditor() {
     setMessage(publicMetricsEnabled ? "Making the aggregate visitor card public…" : "Hiding the public visitor card…");
     try {
       const response = await fetch("/api/admin/analytics", { method: "PUT", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ publicMetricsEnabled }) });
-      const result = await response.json() as { error?: string; publicMetricsEnabled?: boolean };
+      const result = await parseAdminResponse<{ error?: string; publicMetricsEnabled?: boolean }>(response);
       if (!response.ok) throw new Error(result.error || "The public visibility setting could not be updated.");
       setData(current => current ? { ...current, publicMetricsEnabled: Boolean(result.publicMetricsEnabled) } : current);
       setMessage(publicMetricsEnabled ? "Public visitor reach is now enabled on the homepage." : "Public visitor reach is now hidden from the homepage.");

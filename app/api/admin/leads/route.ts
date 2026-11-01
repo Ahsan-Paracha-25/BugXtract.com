@@ -76,8 +76,14 @@ export async function PUT(request: Request) {
     const followUpAt = String(payload.followUpAt ?? previous.lead.followUpAt ?? "");
     const updatedAt = new Date().toISOString();
     await env.DB!.prepare("UPDATE contact_leads SET status = ?, updated_at = ? WHERE id = ?").bind(status, updatedAt, payload.id).run();
-    await env.DB!.prepare("INSERT INTO contact_lead_metadata (lead_id, lead_type, follow_up_at, updated_at) VALUES (?, ?, ?, ?) ON CONFLICT(lead_id) DO UPDATE SET lead_type = excluded.lead_type, follow_up_at = excluded.follow_up_at, updated_at = excluded.updated_at")
-      .bind(payload.id, leadType, followUpAt, updatedAt).run();
+    const metadata = await env.DB!.prepare("SELECT lead_id FROM contact_lead_metadata WHERE lead_id = ?").bind(payload.id).first<{ leadId: string }>();
+    if (metadata) {
+      await env.DB!.prepare("UPDATE contact_lead_metadata SET lead_type = ?, follow_up_at = ?, updated_at = ? WHERE lead_id = ?")
+        .bind(leadType, followUpAt, updatedAt, payload.id).run();
+    } else {
+      await env.DB!.prepare("INSERT INTO contact_lead_metadata (lead_id, lead_type, follow_up_at, updated_at) VALUES (?, ?, ?, ?)")
+        .bind(payload.id, leadType, followUpAt, updatedAt).run();
+    }
     const events: string[] = [];
     if (status !== previous.lead.status) events.push(`Status changed from ${previous.lead.status} to ${status}`);
     if (leadType !== previous.lead.leadType) events.push(`Customer type changed to ${leadType}`);
@@ -122,6 +128,7 @@ export async function DELETE(request: Request) {
       env.DB!.prepare("DELETE FROM contact_lead_notes WHERE lead_id = ?").bind(id).run(),
       env.DB!.prepare("DELETE FROM contact_lead_activity WHERE lead_id = ?").bind(id).run(),
       env.DB!.prepare("DELETE FROM contact_lead_metadata WHERE lead_id = ?").bind(id).run(),
+      env.DB!.prepare("DELETE FROM customer_profiles WHERE lead_id = ?").bind(id).run(),
     ]);
     await env.DB!.prepare("DELETE FROM contact_leads WHERE id = ?").bind(id).run();
     return Response.json({ ok: true });

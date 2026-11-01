@@ -74,9 +74,16 @@ export async function PUT(request: Request) {
   if (!validContent(payload)) return Response.json({ error: "Check the plan fields and try again." }, { status: 400 });
   try {
     if (!env.DB) throw new Error("Pricing storage is not configured.");
-    await env.DB.prepare("INSERT INTO site_pricing (id, content, updated_at, updated_by) VALUES (1, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET content = excluded.content, updated_at = excluded.updated_at, updated_by = excluded.updated_by")
-      .bind(JSON.stringify(payload), new Date().toISOString(), username).run();
-    return Response.json({ ok: true, savedAt: new Date().toISOString() });
+    const savedAt = new Date().toISOString();
+    const existing = await env.DB.prepare("SELECT id FROM site_pricing WHERE id = 1").first<{ id: number }>();
+    if (existing) {
+      await env.DB.prepare("UPDATE site_pricing SET content = ?, updated_at = ?, updated_by = ? WHERE id = 1")
+        .bind(JSON.stringify(payload), savedAt, username).run();
+    } else {
+      await env.DB.prepare("INSERT INTO site_pricing (id, content, updated_at, updated_by) VALUES (1, ?, ?, ?)")
+        .bind(JSON.stringify(payload), savedAt, username).run();
+    }
+    return Response.json({ ok: true, savedAt });
   } catch {
     return Response.json({ error: "Could not save yet. Please try again." }, { status: 503 });
   }

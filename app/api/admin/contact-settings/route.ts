@@ -39,8 +39,14 @@ export async function PUT(request: Request) {
     if (!env.DB) throw new Error("Contact settings database is unavailable.");
     const now = new Date().toISOString();
     const normalizedRelayUrl = typeof relayUrl === "string" && relayUrl.trim() ? relayUrl.trim() : null;
-    await env.DB.prepare("INSERT INTO contact_settings (id, recipient_email, relay_url, updated_at, updated_by) VALUES (1, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET recipient_email = excluded.recipient_email, relay_url = excluded.relay_url, updated_at = excluded.updated_at, updated_by = excluded.updated_by")
-      .bind(email.trim(), normalizedRelayUrl, now, username || "admin").run();
+    const existing = await env.DB.prepare("SELECT id FROM contact_settings WHERE id = 1").first<{ id: number }>();
+    if (existing) {
+      await env.DB.prepare("UPDATE contact_settings SET recipient_email = ?, relay_url = ?, updated_at = ?, updated_by = ? WHERE id = 1")
+        .bind(email.trim(), normalizedRelayUrl, now, username || "admin").run();
+    } else {
+      await env.DB.prepare("INSERT INTO contact_settings (id, recipient_email, relay_url, updated_at, updated_by) VALUES (1, ?, ?, ?, ?)")
+        .bind(email.trim(), normalizedRelayUrl, now, username || "admin").run();
+    }
     const usingResend = Boolean(env.RESEND_API_KEY && env.RESEND_FROM_EMAIL);
     return Response.json({ ok: true, recipientEmail: email.trim(), relayUrl: normalizedRelayUrl || "", updatedAt: now, senderConfigured: usingResend || Boolean(normalizedRelayUrl), deliveryProvider: usingResend ? "Resend" : normalizedRelayUrl ? "Gmail" : null });
   } catch (error) {

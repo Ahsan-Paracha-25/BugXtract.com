@@ -12,6 +12,26 @@ export type VisitorPresence = Pick<VisitorEvent, "visitorId" | "path" | "device"
 export type VisitorSectionActivity = VisitorPresence & { sectionId: string; sectionLabel: string; seconds: number };
 
 let schemaPromise: Promise<void> | undefined;
+let lastPrunedAt = 0;
+
+async function pruneStaleAnalytics() {
+  const now = Date.now();
+  if (now - lastPrunedAt < 6 * 60 * 60 * 1000) return;
+  lastPrunedAt = now;
+  const daysAgo = (days: number) => new Date(now - days * 86400000).toISOString().slice(0, 10);
+  const presenceCutoff = new Date(now - 7 * 86400000).toISOString();
+  try {
+    await Promise.all([
+      env.DB!.prepare("DELETE FROM visitor_events WHERE activity_date < ?").bind(daysAgo(365)).run(),
+      env.DB!.prepare("DELETE FROM visitor_section_activity WHERE activity_date < ?").bind(daysAgo(90)).run(),
+      env.DB!.prepare("DELETE FROM visitor_presence WHERE last_seen < ?").bind(presenceCutoff).run(),
+      env.DB!.prepare("DELETE FROM visitor_section_presence WHERE last_seen < ?").bind(presenceCutoff).run(),
+    ]);
+  } catch (error) {
+    lastPrunedAt = 0;
+    console.error("Could not prune stale visitor analytics", error);
+  }
+}
 
 /** Stores anonymous, aggregate-ready events only; no IP address or contact data. */
 export async function ensureVisitorAnalyticsStorage() {
@@ -89,6 +109,7 @@ export async function recordVisitorPresence(presence: VisitorPresence, request: 
 /** Records visible sections as anonymous, coarse 30-second engagement intervals. */
 export async function recordVisitorSectionActivity(activity: VisitorSectionActivity) {
   await ensureVisitorAnalyticsStorage();
+  await pruneStaleAnalytics();
   const now = new Date();
   await env.DB!.prepare("DELETE FROM visitor_section_presence WHERE visitor_id = ?").bind(activity.visitorId).run();
   await env.DB!.prepare("INSERT INTO visitor_section_presence (visitor_id, last_seen, page_path, section_id, section_label, device_type) VALUES (?, ?, ?, ?, ?, ?)")

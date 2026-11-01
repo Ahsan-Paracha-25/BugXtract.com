@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { parseAdminResponse } from "./response";
 const Link = ({ className, href, children }: { className?: string; href: string; children: string }) => <a className={className} href={href} onClick={event => { event.preventDefault(); window.location.assign(href); }}>{children}</a>;
 import type { PricingContent, Plan, Retainer } from "../../lib/pricing-defaults";
 import { defaultFounderProfile, defaultPricing, defaultTrustMetrics, featureLabels } from "../../lib/pricing-defaults";
@@ -65,7 +66,7 @@ export function AdminEditor({ onLogout, username, view = "content" }: { onLogout
   const [founderStatus, setFounderStatus] = useState("Save the founder profile to publish it, then we will verify the public value.");
   const [accountStatus, setAccountStatus] = useState("");
   const [accountBusy, setAccountBusy] = useState(false);
-  useEffect(() => { fetch("/api/pricing", { cache: "no-store" }).then(async r => { if (!r.ok) throw new Error("Pricing data could not be loaded."); return r.json() as Promise<PricingContent>; }).then(data => { setContent(toEditablePricing(data)); setStatus("Your current live prices and plan details are loaded."); }).catch(() => setStatus("Showing the current website defaults. Saving will use the protected online database.")); }, []);
+  useEffect(() => { fetch("/api/pricing", { cache: "no-store" }).then(async r => { const data = await parseAdminResponse<PricingContent & { error?: string }>(r); if (!r.ok) throw new Error(data.error || "Pricing data could not be loaded."); return data as PricingContent; }).then(data => { setContent(toEditablePricing(data)); setStatus("Your current live prices and plan details are loaded."); }).catch(() => setStatus("Showing the current website defaults. Saving will use the protected online database.")); }, []);
   function updatePlan(index: number, patch: Partial<EditablePlan>) { setContent(c => ({ ...c, plans: c.plans.map((p, i) => i === index ? { ...p, ...patch } : p) })); }
   function updateRetainer(index: number, patch: Partial<Retainer>) { setContent(c => ({ ...c, retainers: c.retainers.map((p, i) => i === index ? { ...p, ...patch } : p) })); }
   async function save() {
@@ -74,7 +75,7 @@ export function AdminEditor({ onLogout, username, view = "content" }: { onLogout
       return;
     }
     setBusy(true); setStatus("Saving changes…");
-    try { const response = await fetch("/api/pricing", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(toStoredPricing(content)) }); const result = await response.json() as { error?: string; savedAt?: string }; if (!response.ok) throw new Error(result.error || "Save failed."); setStatus(`Saved successfully at ${new Date(result.savedAt ?? Date.now()).toLocaleString()}. Public pricing is updated.`); }
+    try { const response = await fetch("/api/pricing", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(toStoredPricing(content)) }); const result = await parseAdminResponse<{ error?: string; savedAt?: string }>(response); if (!response.ok) throw new Error(result.error || "Save failed."); setStatus(`Saved successfully at ${new Date(result.savedAt ?? Date.now()).toLocaleString()}. Public pricing is updated.`); }
     catch (error) { setStatus(error instanceof Error ? error.message : "Could not save. Please try again."); }
     finally { setBusy(false); }
   }
@@ -87,10 +88,10 @@ export function AdminEditor({ onLogout, username, view = "content" }: { onLogout
     setBusy(true); setFounderStatus("Saving founder profile and checking the live value…");
     try {
       const response = await fetch("/api/pricing", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(toStoredPricing(content)) });
-      const result = await response.json() as { error?: string };
+      const result = await parseAdminResponse<{ error?: string }>(response);
       if (!response.ok) throw new Error(result.error || "The founder profile could not be saved.");
       const verification = await fetch(`/api/pricing?verify-founder=${Date.now()}`, { cache: "no-store", credentials: "same-origin" });
-      const liveContent = await verification.json() as PricingContent | { error?: string };
+      const liveContent = await parseAdminResponse<PricingContent | { error?: string }>(verification);
       if (!verification.ok || !("founderProfile" in liveContent)) throw new Error((liveContent as { error?: string }).error || "The saved founder profile could not be verified.");
       const liveFounder = (liveContent as PricingContent).founderProfile;
       if (!liveFounder || liveFounder.name !== founder.name || liveFounder.visible !== founder.visible) {
@@ -107,7 +108,7 @@ export function AdminEditor({ onLogout, username, view = "content" }: { onLogout
     const form = new FormData(formElement);
     try {
       const response = await fetch("/api/admin/auth/credentials", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: String(form.get("username") ?? ""), currentPassword: String(form.get("currentPassword") ?? ""), newPassword: String(form.get("newPassword") ?? "") }) });
-      const result = await response.json() as { error?: string };
+      const result = await parseAdminResponse<{ error?: string }>(response);
       if (!response.ok) throw new Error(result.error || "Could not update login.");
       setAccountStatus("Login details updated successfully."); formElement.reset();
     } catch (error) { setAccountStatus(error instanceof Error ? error.message : "Could not update login."); }

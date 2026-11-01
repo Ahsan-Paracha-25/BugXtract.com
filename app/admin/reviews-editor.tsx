@@ -1,6 +1,7 @@
 "use client";
 
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { parseAdminResponse } from "./response";
 import "./reviews-editor.css";
 
 type Review = {
@@ -35,7 +36,7 @@ export function ReviewsEditor() {
     setLoading(true);
     try {
       const response = await fetch("/api/admin/reviews", { cache: "no-store", credentials: "same-origin" });
-      const result = await response.json() as Review[] | { error?: string };
+      const result = await parseAdminResponse<Review[] | { error?: string }>(response);
       if (!response.ok || !Array.isArray(result)) throw new Error((result as { error?: string }).error || "Reviews could not be loaded.");
       setReviews(result);
       setStatus(`${result.length} ${result.length === 1 ? "review" : "reviews"} saved in your admin panel.`);
@@ -89,7 +90,7 @@ export function ReviewsEditor() {
       const data = new FormData();
       data.set("image", file);
       const response = await fetch("/api/admin/reviews/images", { method: "POST", credentials: "same-origin", body: data });
-      const result = await response.json() as { imageKey?: string; imageUrl?: string; error?: string };
+      const result = await parseAdminResponse<{ imageKey?: string; imageUrl?: string; error?: string }>(response);
       if (!response.ok || !result.imageKey || !result.imageUrl) throw new Error(result.error || "The image could not be uploaded.");
       const previousKey = draft.imageKey;
       if (previousKey && previousKey !== result.imageKey) {
@@ -127,7 +128,7 @@ export function ReviewsEditor() {
         method: "PUT", credentials: "same-origin", headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      const result = await response.json() as { error?: string };
+      const result = await parseAdminResponse<{ error?: string }>(response);
       if (!response.ok) throw new Error(result.error || "The review could not be saved.");
       resetDraft();
       await loadReviews();
@@ -140,7 +141,7 @@ export function ReviewsEditor() {
     setError("");
     try {
       const response = await fetch(`/api/admin/reviews/${encodeURIComponent(review.id)}`, { method: "DELETE", credentials: "same-origin" });
-      const result = await response.json() as { error?: string };
+      const result = await parseAdminResponse<{ error?: string }>(response);
       if (!response.ok) throw new Error(result.error || "The review could not be removed.");
       if (draft.id === review.id) resetDraft();
       await loadReviews();
@@ -149,7 +150,7 @@ export function ReviewsEditor() {
 
   return <section className="editor-section reviews-admin-section">
     <div className="editor-title"><div><h2>Customer reviews</h2><p>Add genuine customer feedback and choose which reviews appear on the website.</p></div><button type="button" className="admin-secondary" onClick={resetDraft}>+ Add review</button></div>
-    <p className="reviews-admin-note">All review details are optional. Publish feedback only with the customer’s permission to use it. JPEG, PNG, and WebP thumbnails up to 4 MB are supported.</p>
+    <p className="reviews-admin-note">Draft fields are optional. A published review needs a customer name and review text; a thumbnail is optional. Publish feedback only with the customer’s permission to use it.</p>
     {error && <p className="reviews-admin-error" role="alert">{error}</p>}
     <form id="review-editor-form" className="edit-card review-form" onSubmit={saveReview}>
       <div className="edit-card-top"><h3>{draft.id ? "Edit customer review" : "Add a customer review"}</h3>{draft.id && <button type="button" className="remove-button" onClick={resetDraft}>Cancel edit</button>}</div>
@@ -162,7 +163,7 @@ export function ReviewsEditor() {
         <label className="wide">Customer review <span>(optional)</span><textarea rows={5} maxLength={2000} value={draft.body} onChange={e => setField("body", e.target.value)} placeholder="Add the customer’s feedback in their own words." /></label>
         <div className="wide review-image-field"><label htmlFor="review-thumbnail">Customer thumbnail <span>(optional)</span></label><div className="review-image-upload"><div className="review-image-preview">{(localPreview || draft.imageUrl) ? <img src={localPreview || draft.imageUrl} alt="Customer thumbnail preview" /> : <span>Photo<br />preview</span>}</div><div><input id="review-thumbnail" type="file" accept="image/jpeg,image/png,image/webp" onChange={uploadImage} /><small>Square headshot works best. The image is kept securely and shown only with a saved review.</small>{uploading && <span className="review-uploading" role="status">Uploading thumbnail…</span>}</div></div></div>
         <label className="popular-check review-publish-check"><input type="checkbox" checked={draft.published} onChange={e => setField("published", e.target.checked)} /> Show this review on the website</label>
-        <div className="wide review-form-actions"><button className="admin-button" disabled={busy || uploading}>{busy ? "Saving review…" : draft.id ? "Save review" : "Add review"}</button><span>{draft.published ? "Any supplied feedback will be visible on the public website." : "This review will stay private in your admin panel."}</span></div>
+        <div className="wide review-form-actions"><button className="admin-button" disabled={busy || uploading}>{busy ? "Saving review…" : draft.id ? "Save review" : "Add review"}</button><span>{draft.published ? "A customer name and review text will be visible on the public website." : "This review will stay private in your admin panel."}</span></div>
       </div>
     </form>
     <div className="reviews-admin-list-head"><h3>Saved reviews</h3><span aria-live="polite">{loading ? "Refreshing…" : status}</span></div>

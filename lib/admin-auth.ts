@@ -116,8 +116,19 @@ export async function recordFailedAuth(request: Request) {
   if (!env.DB) throw new Error("Admin database is unavailable.");
   const key = await ipKey(request);
   const now = Math.floor(Date.now() / 1000);
-  await env.DB.prepare("INSERT INTO admin_auth_attempts (ip_hash, failures, window_started, blocked_until) VALUES (?, 1, ?, 0) ON CONFLICT(ip_hash) DO UPDATE SET failures = CASE WHEN ? - window_started >= 900 THEN 1 ELSE failures + 1 END, window_started = CASE WHEN ? - window_started >= 900 THEN ? ELSE window_started END, blocked_until = CASE WHEN (CASE WHEN ? - window_started >= 900 THEN 1 ELSE failures + 1 END) >= 5 THEN ? + 900 ELSE blocked_until END")
-    .bind(key, now, now, now, now, now, now).run();
+  const existing = await env.DB.prepare("SELECT failures, window_started AS windowStarted, blocked_until AS blockedUntil FROM admin_auth_attempts WHERE ip_hash = ?")
+    .bind(key).first<{ failures: number; windowStarted: number; blockedUntil: number }>();
+  if (!existing) {
+    await env.DB.prepare("INSERT INTO admin_auth_attempts (ip_hash, failures, window_started, blocked_until) VALUES (?, 1, ?, 0)")
+      .bind(key, now).run();
+    return;
+  }
+  const inWindow = now - existing.windowStarted < 900;
+  const failures = inWindow ? existing.failures + 1 : 1;
+  const windowStarted = inWindow ? existing.windowStarted : now;
+  const blockedUntil = failures >= 5 ? now + 900 : (inWindow ? existing.blockedUntil : 0);
+  await env.DB.prepare("UPDATE admin_auth_attempts SET failures = ?, window_started = ?, blocked_until = ? WHERE ip_hash = ?")
+    .bind(failures, windowStarted, blockedUntil, key).run();
 }
 
 export async function clearFailedAuth(request: Request) {

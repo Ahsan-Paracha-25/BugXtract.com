@@ -38,7 +38,8 @@ function validReview(value: unknown): value is ReviewInput {
   return (review.id === undefined || (typeof review.id === "string" && /^[0-9a-f-]{36}$/i.test(review.id))) &&
     optionalText(review.customerName, 100) && optionalText(review.role, 100) && optionalText(review.company, 120) &&
     optionalText(review.headline, 140) && optionalText(review.body, 2000) && validRating && validImage &&
-    typeof review.published === "boolean";
+    typeof review.published === "boolean" &&
+    (!review.published || (text(review.customerName, 100) && text(review.body, 2000)));
 }
 
 export async function GET(request: Request) {
@@ -73,7 +74,7 @@ export async function PUT(request: Request) {
   const reviewPayload = payload && typeof payload === "object"
     ? { ...(payload as Record<string, unknown>), imageKey: normalizeImageKey((payload as ReviewInput).imageKey) || normalizeImageKey((payload as ReviewInput).imageUrl), published: (payload as ReviewInput).published === undefined ? true : (payload as ReviewInput).published }
     : payload;
-  if (!validReview(reviewPayload)) return Response.json({ error: "Complete the review fields and choose a valid thumbnail image." }, { status: 400 });
+  if (!validReview(reviewPayload)) return Response.json({ error: "Add a customer name and review text before publishing. A thumbnail is optional." }, { status: 400 });
 
   try {
     if (!env.DB || !env.BUCKET) throw new Error("Review storage is unavailable.");
@@ -88,13 +89,18 @@ export async function PUT(request: Request) {
       ? await env.DB.prepare("SELECT image_key AS imageKey FROM customer_reviews WHERE id = ?").bind(id).first<{ imageKey: string }>()
       : null;
 
-    await env.DB.prepare(
-      "INSERT INTO customer_reviews (id, customer_name, role, company, headline, body, rating, image_key, published, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET customer_name = excluded.customer_name, role = excluded.role, company = excluded.company, headline = excluded.headline, body = excluded.body, rating = excluded.rating, image_key = excluded.image_key, published = excluded.published, updated_at = excluded.updated_at"
-    ).bind(
-      id, String((reviewPayload as ReviewInput).customerName || "").trim(), String((reviewPayload as ReviewInput).role || "").trim(), String((reviewPayload as ReviewInput).company || "").trim(),
-      String((reviewPayload as ReviewInput).headline || "").trim(), String((reviewPayload as ReviewInput).body || "").trim(), Number((reviewPayload as ReviewInput).rating) || 0, (reviewPayload as ReviewInput).imageKey as string,
-      (reviewPayload as ReviewInput).published ? 1 : 0, now, now,
-    ).run();
+    const values = [
+      String((reviewPayload as ReviewInput).customerName || "").trim(), String((reviewPayload as ReviewInput).role || "").trim(), String((reviewPayload as ReviewInput).company || "").trim(),
+      String((reviewPayload as ReviewInput).headline || "").trim(), String((reviewPayload as ReviewInput).body || "").trim(), Number((reviewPayload as ReviewInput).rating) || 0,
+      (reviewPayload as ReviewInput).imageKey as string, (reviewPayload as ReviewInput).published ? 1 : 0,
+    ];
+    if (previous) {
+      await env.DB.prepare("UPDATE customer_reviews SET customer_name = ?, role = ?, company = ?, headline = ?, body = ?, rating = ?, image_key = ?, published = ?, updated_at = ? WHERE id = ?")
+        .bind(...values, now, id).run();
+    } else {
+      await env.DB.prepare("INSERT INTO customer_reviews (id, customer_name, role, company, headline, body, rating, image_key, published, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+        .bind(id, ...values, now, now).run();
+    }
 
     if (previous?.imageKey && previous.imageKey !== (reviewPayload as ReviewInput).imageKey) {
       try { await env.BUCKET.delete(previous.imageKey); }
